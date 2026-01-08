@@ -14,7 +14,8 @@ import {
   ArrowRight,
   ArrowLeft,
   Copy,
-  Check
+  Check,
+  ClipboardPaste
 } from 'lucide-react'
 import './index.css'
 
@@ -75,6 +76,41 @@ function App() {
     }
   };
 
+  const wakeLock = useRef(null);
+
+  const requestWakeLock = async () => {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock.current = await navigator.wakeLock.request('screen');
+        console.log('Wake Lock is active');
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    }
+  };
+
+  const releaseWakeLock = () => {
+    if (wakeLock.current) {
+      wakeLock.current.release();
+      wakeLock.current = null;
+      console.log('Wake Lock released');
+    }
+  };
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && (status.includes('Receiving') || status.includes('Sending'))) {
+        console.log('App returned to foreground during active transfer');
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      releaseWakeLock();
+    };
+  }, [status]);
+
   const handleJoinRoom = () => {
     if (roomId.length !== 6) return alert('Invalid Room ID');
     console.log('Manually joining room:', roomId);
@@ -88,6 +124,16 @@ function App() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  const pasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const cleanText = text.trim().toUpperCase().substring(0, 6).replace(/[^0-9]/g, '');
+      if (cleanText) setRoomId(cleanText);
+    } catch (err) {
+      console.error('Failed to read clipboard:', err);
+    }
   };
 
   const copyLink = () => {
@@ -120,6 +166,8 @@ function App() {
       setStatus('Connected!');
     } else if (state === 'local-connected') {
       setStatus('Connected (Local Network)');
+    } else if (state === 'disconnected' || state === 'failed') {
+      releaseWakeLock();
     }
   };
 
@@ -171,6 +219,7 @@ function App() {
           startTime.current = Date.now();
           setStatus(`Receiving ${parsed.name}...`);
           setProgress(0);
+          requestWakeLock();
         }
       } catch (e) {
         console.error("Error parsing metadata", e);
@@ -215,6 +264,7 @@ function App() {
     receivedSize.current = 0;
     setMetadata(null);
     setStats({ speed: 'Finished', eta: '0s' });
+    releaseWakeLock();
   };
 
   const resetSelection = () => {
@@ -230,6 +280,7 @@ function App() {
     if (!file || !rtcManager.current) return;
 
     setStatus('Sending...');
+    requestWakeLock();
     startTime.current = Date.now();
     const metadata = {
       type: 'metadata',
@@ -276,6 +327,7 @@ function App() {
     if (offset >= file.size) {
       setStatus('Transfer Complete!');
       setStats({ speed: 'Finished', eta: '0s' });
+      releaseWakeLock();
     }
   };
 
@@ -337,25 +389,39 @@ function App() {
             </div>
 
             <div className="share-info">
-              <p style={{ marginBottom: '0.5rem', fontWeight: 500 }}>Share this code or scan QR:</p>
-              <div className="room-code-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '1rem' }}>
-                <div className="room-code" onClick={() => copyToClipboard(roomId)} style={{ cursor: 'pointer', margin: 0 }}>
-                  <strong>{roomId}</strong>
-                </div>
-                <button
+              <p style={{ marginBottom: '1.5rem', fontWeight: 500, color: 'var(--text-muted)' }}>Share this code or scan QR:</p>
+
+              <div className="input-group" style={{ maxWidth: '280px', margin: '0 auto 1.5rem' }}>
+                <input
+                  readOnly
+                  className="room-code"
+                  value={roomId}
                   onClick={() => copyToClipboard(roomId)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                  style={{ cursor: 'pointer' }}
+                />
+                <button
+                  className="input-icon-btn"
+                  onClick={() => copyToClipboard(roomId)}
+                  title="Copy Code"
                 >
-                  {copied ? <Check size={20} /> : <Copy size={20} />}
+                  {copied ? <Check size={20} className="success-text" /> : <Copy size={20} />}
                 </button>
               </div>
+
+              {status.includes('Local Network') && (
+                <div className="badge-local" style={{ marginBottom: '1rem' }}>
+                  <Wifi size={14} /> Local Network
+                </div>
+              )}
+
               <button
                 className="secondary-btn"
                 onClick={copyLink}
-                style={{ fontSize: '0.85rem', padding: '8px 16px', marginBottom: '1rem', width: 'auto', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                style={{ marginBottom: '2rem' }}
               >
-                <Copy size={16} /> {copied ? 'Link Copied!' : 'Copy Share Link'}
+                <Copy size={18} /> {copied ? 'Link Copied!' : 'Copy Share Link'}
               </button>
+
               <div className="qr-container">
                 <QRCodeCanvas value={`${window.location.origin}${window.location.pathname}?room=${roomId}`} size={160} />
               </div>
@@ -439,25 +505,20 @@ function App() {
 
             {!status.includes('Connected') && !status.includes('Receiving') && !status.includes('Success') ? (
               <>
-                <div className="input-group" style={{ marginBottom: '1rem' }}>
+                <div className="input-group" style={{ maxWidth: '280px', margin: '0 auto 1.5rem' }}>
                   <input
-                    style={{
-                      width: '100%',
-                      padding: '1.25rem',
-                      borderRadius: '16px',
-                      border: '1px solid var(--border-color)',
-                      background: '#f9fafb',
-                      color: 'var(--text-main)',
-                      fontSize: '1.25rem',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      letterSpacing: '0.1em'
-                    }}
                     value={roomId}
                     onChange={(e) => setRoomId(e.target.value)}
                     placeholder="ENTER CODE"
                     maxLength={6}
                   />
+                  <button
+                    className="input-icon-btn"
+                    onClick={pasteFromClipboard}
+                    title="Paste from Clipboard"
+                  >
+                    <ClipboardPaste size={20} />
+                  </button>
                 </div>
                 <button className="primary-btn" onClick={handleJoinRoom}>
                   Join Room
@@ -470,6 +531,11 @@ function App() {
                   <ShieldCheck size={64} strokeWidth={1.5} />
                 </div>
                 <h3 style={{ margin: 0 }}>Connected</h3>
+                {status.includes('Local Network') && (
+                  <div className="badge-local">
+                    <Wifi size={14} /> Local Network
+                  </div>
+                )}
                 <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Waiting for files from {roomId}...</p>
               </div>
             )}
