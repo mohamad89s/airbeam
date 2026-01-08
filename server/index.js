@@ -7,15 +7,24 @@ const cors = require('cors');
 
 app.use(cors());
 
+console.log('CORS Origin allowed:', process.env.CORS_ORIGIN || "*");
+
 const io = new Server(server, {
   cors: {
     origin: process.env.CORS_ORIGIN || "*",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ["websocket", "polling"]
 });
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+  const transport = socket.conn.transport.name;
+  console.log(`✅ A user connected: ${socket.id} (Transport: ${transport})`);
+
+  socket.conn.on('upgrade', (transport) => {
+    console.log(`🚀 Transport upgraded for ${socket.id} to: ${transport.name}`);
+  });
 
   socket.on('join-room', (roomId) => {
     socket.join(roomId);
