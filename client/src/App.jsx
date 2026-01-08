@@ -366,99 +366,76 @@ function App() {
     <>
       <header>
         <div className="logo" onClick={goHome} style={{ cursor: 'pointer' }}>
-          <Zap size={28} fill="currentColor" />
+          <Zap size={24} fill="currentColor" />
           <span>AirBeam</span>
         </div>
-        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>
           Direct P2P
         </div>
       </header>
 
       <main className="container">
         {mode === 'home' && (
-          <>
-            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', letterSpacing: '-0.02em', color: 'var(--text-main)' }}>Share files instantly.</h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1.125rem' }}>Direct peer-to-peer sharing. No size limits. No logs.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem', letterSpacing: '-0.02em', color: 'var(--text-main)' }}>Share files instantly.</h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>Direct P2P sharing. No limits.</p>
             </div>
             <div className="mode-selection">
               <div className="mode-btn" onClick={() => handleModeSelect('sender')}>
-                <Send size={40} strokeWidth={2.5} />
-                <span>Send File</span>
+                <Send size={32} strokeWidth={2.5} />
+                <span>Send</span>
               </div>
               <div className="mode-btn" onClick={() => handleModeSelect('receiver')}>
-                <Download size={40} strokeWidth={2.5} />
-                <span>Receive File</span>
+                <Download size={32} strokeWidth={2.5} />
+                <span>Receive</span>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {mode === 'sender' && (
           <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              <button
-                onClick={goHome}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '8px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-muted)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.background = '#f3f4f6'}
-                onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-              >
-                <ArrowLeft size={24} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <button onClick={goHome} className="input-icon-btn" style={{ position: 'static' }}>
+                <ArrowLeft size={20} />
               </button>
-              <h2 style={{ margin: 0 }}>Send Files</h2>
+              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Send Files</h2>
             </div>
 
             <div className="share-info">
-              <p style={{ marginBottom: '1.5rem', fontWeight: 500, color: 'var(--text-muted)' }}>Share this code or scan QR:</p>
-
-              <div className="input-group" style={{ maxWidth: '280px', margin: '0 auto 1.5rem' }}>
+              <div className="input-group" style={{ maxWidth: '240px', margin: '0 auto 0.75rem' }}>
                 <input
                   readOnly
                   className="room-code"
                   value={roomId}
                   onClick={() => copyToClipboard(roomId)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', fontSize: '1.25rem' }}
                 />
                 <button
                   className="input-icon-btn"
                   onClick={() => copyToClipboard(roomId)}
-                  title="Copy Code"
                 >
-                  {copied ? <Check size={20} className="success-text" /> : <Copy size={20} />}
+                  {copied ? <Check size={18} className="success-text" /> : <Copy size={18} />}
                 </button>
               </div>
 
-              {status.includes('Local Network') && (
-                <div className="badge-local" style={{ marginBottom: '1rem' }}>
-                  <Wifi size={14} /> Local Network
-                </div>
-              )}
-
-              <button
-                className="secondary-btn"
-                onClick={copyLink}
-                style={{ marginBottom: '2rem' }}
-              >
-                <Copy size={18} /> {copied ? 'Link Copied!' : 'Copy Share Link'}
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                <button
+                  className="secondary-btn"
+                  onClick={copyLink}
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                >
+                  {copied ? 'Copied' : 'Copy Link'}
+                </button>
+              </div>
 
               <div className="qr-container">
-                <QRCodeCanvas value={`${window.location.origin}${window.location.pathname}?room=${roomId}`} size={160} />
+                <QRCodeCanvas value={`${window.location.origin}${window.location.pathname}?room=${roomId}`} size={120} />
               </div>
             </div>
 
-            <div className="drop-zone" onClick={() => document.getElementById('file-input').click()}>
+            <div className="drop-zone" onClick={() => document.getElementById('file-input').click()} style={{ padding: '1rem' }}>
               <input
                 id="file-input"
                 type="file"
@@ -472,127 +449,89 @@ function App() {
                   }
                 }}
               />
-              <FileText size={32} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+              <FileText size={24} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
               {file ? (
-                <p style={{ fontWeight: 600, color: 'var(--text-main)' }}>{file.name} ({formatBytes(file.size)})</p>
+                <p style={{ fontWeight: 600, fontSize: '0.85rem', margin: 0 }}>{file.name}</p>
               ) : (
-                <p>Click or drag file to start</p>
+                <p style={{ fontSize: '0.85rem', margin: 0 }}>Select file</p>
               )}
             </div>
 
-            {!status.includes('Complete') && file && (
-              <button className="primary-btn" onClick={sendFile}>
-                <Zap size={20} />
-                Beam File
+            {file && !status.includes('Complete') && (
+              <button className="primary-btn" onClick={sendFile} style={{ padding: '0.75rem' }}>
+                <Zap size={18} /> Beam
               </button>
             )}
 
             {status.includes('Complete') && (
-              <button className="primary-btn" onClick={resetSelection} style={{ background: 'var(--success)' }}>
-                <RefreshCw size={20} />
-                Send Another
+              <button className="primary-btn" onClick={resetSelection} style={{ background: 'var(--success)', padding: '0.75rem' }}>
+                <RefreshCw size={18} /> Another
               </button>
             )}
 
-            <div className="status">{status}</div>
+            <div className="status" style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>{status}</div>
 
             {progress > 0 && progress < 100 && (
-              <div className="stats-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Zap size={14} /> {stats.speed}</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {stats.eta}</span>
+              <div className="progress-bar-container" style={{ marginTop: '0.5rem' }}>
+                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
               </div>
             )}
-
-            <div className="progress-bar-container">
-              <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-            </div>
           </div>
         )}
 
         {mode === 'receiver' && (
           <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              <button
-                onClick={goHome}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '8px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-muted)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.background = '#f3f4f6'}
-                onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-              >
-                <ArrowLeft size={24} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <button onClick={goHome} className="input-icon-btn" style={{ position: 'static' }}>
+                <ArrowLeft size={20} />
               </button>
-              <h2 style={{ margin: 0 }}>Receive Files</h2>
+              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Receive Files</h2>
             </div>
 
             {!status.includes('Connected') && !status.includes('Receiving') && !status.includes('Success') ? (
               <>
-                <div className="input-group" style={{ maxWidth: '280px', margin: '0 auto 1.5rem' }}>
+                <div className="input-group" style={{ maxWidth: '240px', margin: '0 auto 1rem' }}>
                   <input
                     value={roomId}
                     onChange={(e) => setRoomId(e.target.value)}
-                    placeholder="ENTER CODE"
+                    placeholder="CODE"
                     maxLength={6}
+                    style={{ fontSize: '1.25rem' }}
                   />
                   <button
                     className="input-icon-btn"
                     onClick={pasteFromClipboard}
-                    title="Paste from Clipboard"
                   >
-                    <ClipboardPaste size={20} />
+                    <ClipboardPaste size={18} />
                   </button>
                 </div>
-                <button className="primary-btn" onClick={handleJoinRoom}>
-                  Join Room
-                  <ArrowRight size={20} />
+                <button className="primary-btn" onClick={handleJoinRoom} style={{ padding: '0.75rem' }}>
+                  Join <ArrowRight size={18} />
                 </button>
               </>
             ) : (
-              <div className="connected-view" style={{ textAlign: 'center', padding: '1rem 0' }}>
-                <div style={{ color: 'var(--success)', marginBottom: '1rem' }}>
-                  <ShieldCheck size={64} strokeWidth={1.5} />
-                </div>
-                <h3 style={{ margin: 0 }}>Connected</h3>
-                {status.includes('Local Network') && (
-                  <div className="badge-local">
-                    <Wifi size={14} /> Local Network
-                  </div>
-                )}
-                <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Waiting for files from {roomId}...</p>
+              <div style={{ textAlign: 'center' }}>
+                <ShieldCheck size={48} color="var(--success)" style={{ marginBottom: '0.5rem' }} />
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Waiting for files...</p>
               </div>
             )}
 
-            <div className="status">{status}</div>
+            <div className="status" style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>{status}</div>
 
-            {(progress > 0 && progress < 100) && (
-              <div className="stats-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Zap size={14} /> {stats.speed}</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {stats.eta}</span>
+            {progress > 0 && progress < 100 && (
+              <div className="progress-bar-container" style={{ marginTop: '0.5rem' }}>
+                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
               </div>
             )}
-
-            <div className="progress-bar-container">
-              <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-            </div>
           </div>
         )}
       </main>
 
       <footer>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '1rem' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><ShieldCheck size={16} /> End-to-end P2P</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Wifi size={16} /> Any Browser</span>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', fontSize: '0.75rem' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><ShieldCheck size={14} /> P2P</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Wifi size={14} /> Local</span>
         </div>
-        <p>&copy; 2026 AirBeam. All rights mirrored.</p>
       </footer>
     </>
   )
