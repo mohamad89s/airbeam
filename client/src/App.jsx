@@ -77,6 +77,32 @@ function App() {
   };
 
   const wakeLock = useRef(null);
+  const audioContext = useRef(null);
+  const backgroundTimer = useRef(null);
+
+  const startSilentAudio = () => {
+    if (audioContext.current) return;
+    try {
+      audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.current.createOscillator();
+      const gainNode = audioContext.current.createGain();
+      gainNode.gain.value = 0.001;
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.current.destination);
+      oscillator.start();
+      console.log('Silent audio heartbeat started');
+    } catch (e) {
+      console.error('Failed to start silent audio', e);
+    }
+  };
+
+  const stopSilentAudio = () => {
+    if (audioContext.current) {
+      audioContext.current.close();
+      audioContext.current = null;
+      console.log('Silent audio heartbeat stopped');
+    }
+  };
 
   const requestWakeLock = async () => {
     if ('wakeLock' in navigator) {
@@ -87,6 +113,7 @@ function App() {
         console.error(`${err.name}, ${err.message}`);
       }
     }
+    startSilentAudio();
   };
 
   const releaseWakeLock = () => {
@@ -95,21 +122,51 @@ function App() {
       wakeLock.current = null;
       console.log('Wake Lock released');
     }
+    stopSilentAudio();
   };
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && (status.includes('Receiving') || status.includes('Sending'))) {
-        console.log('App returned to foreground during active transfer');
-        requestWakeLock();
+      if (document.visibilityState === 'visible') {
+        console.log('App returned to foreground');
+        if (backgroundTimer.current) {
+          clearTimeout(backgroundTimer.current);
+          backgroundTimer.current = null;
+        }
+
+        if (roomId && roomId.length === 6) {
+          socket.emit('join-room', roomId);
+        }
+
+        if (status.includes('Receiving') || status.includes('Sending')) {
+          requestWakeLock();
+        }
+      } else {
+        if (!status.includes('Receiving') && !status.includes('Sending')) {
+          backgroundTimer.current = setTimeout(() => {
+            console.log('Cleaning up after 30 mins of inactivity');
+            releaseWakeLock();
+          }, 30 * 60 * 1000);
+        }
       }
     };
+
+    const handleReconnect = () => {
+      console.log('Socket reconnected, syncing room...');
+      if (roomId && roomId.length === 6) {
+        socket.emit('join-room', roomId);
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    socket.on('connect', handleReconnect);
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      socket.off('connect', handleReconnect);
       releaseWakeLock();
     };
-  }, [status]);
+  }, [roomId, status]);
 
   const handleJoinRoom = () => {
     if (roomId.length !== 6) return alert('Invalid Room ID');

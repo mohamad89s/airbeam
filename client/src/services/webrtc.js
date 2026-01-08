@@ -89,7 +89,11 @@ export class WebRTCManager {
 
     handleUserJoined(userId) {
         console.log('User joined event received for:', userId);
-        if (this.isInitiator && !this.remotePeerId) {
+        // If we have a different peer ID, we need to reset and start over
+        if (this.isInitiator && this.remotePeerId !== userId) {
+            console.log(`Remote peer ID changed from ${this.remotePeerId} to ${userId}. Re-initializing.`);
+            this.initializePeer(userId, true);
+        } else if (this.isInitiator && !this.remotePeerId) {
             this.initializePeer(userId, true);
         }
     }
@@ -114,10 +118,10 @@ export class WebRTCManager {
         };
     }
 
-    async createOffer() {
-        if (this.peerConnection.signalingState !== 'stable') return;
+    async createOffer(iceRestart = false) {
+        if (this.peerConnection.signalingState !== 'stable' && !iceRestart) return;
         try {
-            const offer = await this.peerConnection.createOffer();
+            const offer = await this.peerConnection.createOffer({ iceRestart });
             await this.peerConnection.setLocalDescription(offer);
             this.socket.emit('offer', {
                 target: this.remotePeerId,
