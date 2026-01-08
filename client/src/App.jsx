@@ -12,7 +12,9 @@ import {
   Clock,
   RefreshCw,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Copy,
+  Check
 } from 'lucide-react'
 import './index.css'
 
@@ -22,6 +24,7 @@ function App() {
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
   const [file, setFile] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   // Refs
   const rtcManager = useRef(null)
@@ -80,6 +83,18 @@ function App() {
     initWebRTC(roomId, false);
   };
 
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const copyLink = () => {
+    const link = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+    copyToClipboard(link);
+  };
+
   const initWebRTC = (room, isInitiator) => {
     if (rtcManager.current) {
       rtcManager.current.destroy();
@@ -87,6 +102,7 @@ function App() {
 
     rtcManager.current = new WebRTCManager(
       socket,
+      isInitiator,
       (data) => handleDataReceived(data),
       (connectionState) => handleConnectionState(connectionState)
     );
@@ -102,6 +118,8 @@ function App() {
     setStatus(`Status: ${state}`);
     if (state === 'connected') {
       setStatus('Connected!');
+    } else if (state === 'local-connected') {
+      setStatus('Connected (Local Network)');
     }
   };
 
@@ -320,11 +338,26 @@ function App() {
 
             <div className="share-info">
               <p style={{ marginBottom: '0.5rem', fontWeight: 500 }}>Share this code or scan QR:</p>
-              <div className="room-code">
-                <strong>{roomId}</strong>
+              <div className="room-code-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '1rem' }}>
+                <div className="room-code" onClick={() => copyToClipboard(roomId)} style={{ cursor: 'pointer', margin: 0 }}>
+                  <strong>{roomId}</strong>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(roomId)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                >
+                  {copied ? <Check size={20} /> : <Copy size={20} />}
+                </button>
               </div>
+              <button
+                className="secondary-btn"
+                onClick={copyLink}
+                style={{ fontSize: '0.85rem', padding: '8px 16px', marginBottom: '1rem', width: 'auto', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <Copy size={16} /> {copied ? 'Link Copied!' : 'Copy Share Link'}
+              </button>
               <div className="qr-container">
-                <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
+                <QRCodeCanvas value={`${window.location.origin}${window.location.pathname}?room=${roomId}`} size={160} />
               </div>
             </div>
 

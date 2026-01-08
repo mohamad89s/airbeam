@@ -1,12 +1,12 @@
 export class WebRTCManager {
-    constructor(socket, onData, onStatusChange) {
+    constructor(socket, isInitiator, onData, onStatusChange) {
         this.socket = socket;
         this.onData = onData;
         this.onStatusChange = onStatusChange; // 'connecting', 'connected', 'disconnected'
         this.peerConnection = null;
         this.dataChannel = null;
         this.remotePeerId = null;
-        this.isInitiator = false;
+        this.isInitiator = isInitiator;
         this.iceCandidateQueue = [];
 
         this.config = {
@@ -64,6 +64,9 @@ export class WebRTCManager {
             const state = this.peerConnection.connectionState;
             console.log('WebRTC Connection state:', state);
             this.onStatusChange(state);
+            if (state === 'connected') {
+                this.checkLocalConnection();
+            }
         };
 
         this.peerConnection.onsignalingstatechange = () => {
@@ -218,5 +221,26 @@ export class WebRTCManager {
             this.peerConnection.close();
         }
         this.iceCandidateQueue = [];
+    }
+
+    async checkLocalConnection() {
+        try {
+            const stats = await this.peerConnection.getStats();
+            let isLocal = false;
+            stats.forEach(report => {
+                if (report.type === 'remote-candidate') {
+                    if (report.candidateType === 'host' ||
+                        (report.address && (report.address.startsWith('192.168.') || report.address.startsWith('10.')))) {
+                        isLocal = true;
+                    }
+                }
+            });
+            if (isLocal) {
+                console.log('Connection established via LOCAL network');
+                this.onStatusChange('local-connected');
+            }
+        } catch (e) {
+            console.error('Error checking local connection stats', e);
+        }
     }
 }
