@@ -74,6 +74,7 @@ function App() {
 
   const handleJoinRoom = () => {
     if (roomId.length !== 6) return alert('Invalid Room ID');
+    console.log('Manually joining room:', roomId);
     socket.emit('join-room', roomId);
     setStatus('Joining room...');
     initWebRTC(roomId, false);

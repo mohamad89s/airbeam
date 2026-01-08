@@ -44,7 +44,10 @@ export class WebRTCManager {
         this.remotePeerId = remotePeerId;
         this.isInitiator = isInitiator;
 
-        if (this.peerConnection) this.destroy();
+        if (this.peerConnection) {
+            console.log('Closing existing peer connection');
+            this.peerConnection.close();
+        }
 
         this.peerConnection = new RTCPeerConnection(this.config);
 
@@ -82,6 +85,7 @@ export class WebRTCManager {
     }
 
     handleUserJoined(userId) {
+        console.log('User joined event received for:', userId);
         if (this.isInitiator && !this.remotePeerId) {
             this.initializePeer(userId, true);
         }

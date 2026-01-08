@@ -20,12 +20,18 @@ io.on('connection', (socket) => {
   socket.on('join-room', (roomId) => {
     socket.join(roomId);
     console.log(`User ${socket.id} joined room ${roomId}`);
+
+    // Check how many users are in the room
+    const clients = io.sockets.adapter.rooms.get(roomId);
+    const numClients = clients ? clients.size : 0;
+    console.log(`Room ${roomId} now has ${numClients} users`);
+
     // Notify others in the room
     socket.to(roomId).emit('user-joined', socket.id);
   });
 
   socket.on('offer', (payload) => {
-    // payload: { target: socketId, sdp: ... }
+    console.log(`Relaying offer from ${socket.id} to ${payload.target}`);
     io.to(payload.target).emit('offer', {
       sdp: payload.sdp,
       caller: socket.id
@@ -33,7 +39,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('answer', (payload) => {
-    // payload: { target: socketId, sdp: ... }
+    console.log(`Relaying answer from ${socket.id} to ${payload.target}`);
     io.to(payload.target).emit('answer', {
       sdp: payload.sdp,
       responder: socket.id
