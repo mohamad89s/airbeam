@@ -15,8 +15,14 @@ import {
   ArrowLeft,
   Copy,
   Check,
-  ClipboardPaste
+  ClipboardPaste,
+  Camera,
+  Link,
+  MessageSquare,
+  X,
+  Maximize
 } from 'lucide-react'
+import { Html5QrcodeScanner } from 'html5-qrcode'
 import './index.css'
 
 function App() {
@@ -24,8 +30,12 @@ function App() {
   const [roomId, setRoomId] = useState('')
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
-  const [file, setFile] = useState(null)
+  const [files, setFiles] = useState([]) // Array of files
+  const [sharedText, setSharedText] = useState('')
+  const [transferType, setTransferType] = useState('file') // file, text
   const [copied, setCopied] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
+  const [receivedText, setReceivedText] = useState('')
 
   // Refs
   const rtcManager = useRef(null)
@@ -66,7 +76,9 @@ function App() {
   const goHome = () => {
     setMode('home');
     setRoomId('');
-    setFile(null);
+    setFiles([]);
+    setSharedText('');
+    setReceivedText('');
     setProgress(0);
     setStatus('');
     setStats({ speed: '0 B/s', eta: '0s' });
@@ -251,6 +263,10 @@ function App() {
           setStatus(`Receiving ${parsed.name}...`);
           setProgress(0);
           requestWakeLock();
+        } else if (parsed.type === 'text') {
+          setReceivedText(parsed.content);
+          setStatus('Received Text/Link');
+          requestWakeLock();
         }
       } catch (e) {
         console.error("Error parsing metadata", e);
@@ -299,7 +315,8 @@ function App() {
   };
 
   const resetSelection = () => {
-    setFile(null);
+    setFiles([]);
+    setSharedText('');
     setProgress(0);
     setStatus('Connected!');
     setStats({ speed: '0 B/s', eta: '0s' });
@@ -307,59 +324,92 @@ function App() {
     if (input) input.value = '';
   };
 
-  const sendFile = async () => {
-    if (!file || !rtcManager.current) return;
+  const sendText = () => {
+    if (!sharedText || !rtcManager.current) return;
+    const payload = {
+      type: 'text',
+      content: sharedText
+    };
+    rtcManager.current.sendData(JSON.stringify(payload));
+    setStatus('Text shared!');
+    setSharedText('');
+  };
 
-    setStatus('Sending...');
+  const sendFiles = async () => {
+    if (files.length === 0 || !rtcManager.current) return;
+
+    setStatus('Starting transfer...');
     requestWakeLock();
-    startTime.current = Date.now();
-    const metadata = {
-      type: 'metadata',
-      name: file.name,
-      size: file.size
-    };
-    rtcManager.current.sendData(JSON.stringify(metadata));
 
-    const CHUNK_SIZE = 16384 * 4;
-    let offset = 0;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      startTime.current = Date.now();
+      const metadata = {
+        type: 'metadata',
+        name: file.name,
+        size: file.size,
+        totalFiles: files.length,
+        currentIndex: i
+      };
+      rtcManager.current.sendData(JSON.stringify(metadata));
 
-    const readFileSlice = (file, offset, size) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        const slice = file.slice(offset, offset + size);
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(slice);
+      const CHUNK_SIZE = 16384 * 4;
+      let offset = 0;
+
+      const readFileSlice = (file, offset, size) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          const slice = file.slice(offset, offset + size);
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsArrayBuffer(slice);
+        });
+      };
+
+      while (offset < file.size) {
+        if (rtcManager.current.getBufferedAmount() > 1024 * 1024) {
+          await new Promise(r => setTimeout(r, 50));
+          continue;
+        }
+
+        const chunk = await readFileSlice(file, offset, CHUNK_SIZE);
+        const success = rtcManager.current.sendData(chunk);
+
+        if (!success) {
+          setStatus('Error: Connection lost');
+          return;
+        }
+
+        offset += chunk.byteLength;
+        if (Math.random() > 0.8) {
+          calculateStats(offset, file.size, startTime.current);
+        }
+        setProgress((offset / file.size) * 100);
+        setStatus(`Files (${i + 1}/${files.length}): ${formatBytes(offset)} / ${formatBytes(file.size)}`);
+      }
+    }
+
+    setStatus('Transfer Complete!');
+    setStats({ speed: 'Finished', eta: '0s' });
+    releaseWakeLock();
+  };
+
+  const startScanner = () => {
+    setShowScanner(true);
+    setTimeout(() => {
+      const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+      scanner.render((decodedText) => {
+        setRoomId(decodedText);
+        scanner.clear();
+        setShowScanner(false);
+        // Automatically join after scan
+        socket.emit('join-room', decodedText);
+        setStatus('Joining via scan...');
+        initWebRTC(decodedText, false);
+      }, (error) => {
+        // console.warn(error);
       });
-    };
-
-    while (offset < file.size) {
-      if (rtcManager.current.getBufferedAmount() > 1024 * 1024) {
-        await new Promise(r => setTimeout(r, 50));
-        continue;
-      }
-
-      const chunk = await readFileSlice(file, offset, CHUNK_SIZE);
-      const success = rtcManager.current.sendData(chunk);
-
-      if (!success) {
-        setStatus('Error: Connection lost');
-        break;
-      }
-
-      offset += chunk.byteLength;
-      if (Math.random() > 0.8) {
-        calculateStats(offset, file.size, startTime.current);
-      }
-      setProgress((offset / file.size) * 100);
-      setStatus(`Sending: ${formatBytes(offset)} / ${formatBytes(file.size)}`);
-    }
-
-    if (offset >= file.size) {
-      setStatus('Transfer Complete!');
-      setStats({ speed: 'Finished', eta: '0s' });
-      releaseWakeLock();
-    }
+    }, 100);
   };
 
   return (
@@ -400,7 +450,39 @@ function App() {
               <button onClick={goHome} className="input-icon-btn" style={{ position: 'static' }}>
                 <ArrowLeft size={20} />
               </button>
-              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Send Files</h2>
+              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Send</h2>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.25rem', background: '#f3f4f6', padding: '2px', borderRadius: '12px' }}>
+                <button
+                  onClick={() => setTransferType('file')}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    background: transferType === 'file' ? 'white' : 'transparent',
+                    boxShadow: transferType === 'file' ? 'var(--shadow-sm)' : 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Files
+                </button>
+                <button
+                  onClick={() => setTransferType('text')}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    background: transferType === 'text' ? 'white' : 'transparent',
+                    boxShadow: transferType === 'text' ? 'var(--shadow-sm)' : 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Text/Link
+                </button>
+              </div>
             </div>
 
             <div className="share-info">
@@ -435,32 +517,65 @@ function App() {
               </div>
             </div>
 
-            <div className="drop-zone" onClick={() => document.getElementById('file-input').click()} style={{ padding: '1rem' }}>
-              <input
-                id="file-input"
-                type="file"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  if (e.target.files[0]) {
-                    setFile(e.target.files[0]);
-                    setStatus('');
-                    setProgress(0);
-                    setStats({ speed: '0 B/s', eta: '0s' });
-                  }
-                }}
-              />
-              <FileText size={24} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
-              {file ? (
-                <p style={{ fontWeight: 600, fontSize: '0.85rem', margin: 0 }}>{file.name}</p>
-              ) : (
-                <p style={{ fontSize: '0.85rem', margin: 0 }}>Select file</p>
-              )}
-            </div>
+            {transferType === 'file' ? (
+              <div className="drop-zone" onClick={() => document.getElementById('file-input').click()} style={{ padding: '1rem' }}>
+                <input
+                  id="file-input"
+                  type="file"
+                  multiple
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    if (e.target.files.length > 0) {
+                      setFiles(Array.from(e.target.files));
+                      setStatus('');
+                      setProgress(0);
+                      setStats({ speed: '0 B/s', eta: '0s' });
+                    }
+                  }}
+                />
+                <FileText size={24} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
+                {files.length > 0 ? (
+                  <p style={{ fontWeight: 600, fontSize: '0.85rem', margin: 0 }}>
+                    {files.length === 1 ? files[0].name : `${files.length} files selected`}
+                  </p>
+                ) : (
+                  <p style={{ fontSize: '0.85rem', margin: 0 }}>Select file(s)</p>
+                )}
+              </div>
+            ) : (
+              <div style={{ marginBottom: '1rem' }}>
+                <textarea
+                  className="text-input"
+                  placeholder="Paste links or type text to beam..."
+                  value={sharedText}
+                  onChange={(e) => setSharedText(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '80px',
+                    padding: '12px',
+                    borderRadius: '16px',
+                    border: '1px solid var(--border-color)',
+                    background: '#f9fafb',
+                    fontSize: '0.9rem',
+                    resize: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+            )}
 
-            {file && !status.includes('Complete') && (
-              <button className="primary-btn" onClick={sendFile} style={{ padding: '0.75rem' }}>
-                <Zap size={18} /> Beam
-              </button>
+            {transferType === 'file' ? (
+              files.length > 0 && !status.includes('Complete') && (
+                <button className="primary-btn" onClick={sendFiles} style={{ padding: '0.75rem' }}>
+                  <Zap size={18} /> Beam {files.length > 1 ? 'Files' : 'File'}
+                </button>
+              )
+            ) : (
+              sharedText && (
+                <button className="primary-btn" onClick={sendText} style={{ padding: '0.75rem' }}>
+                  <Link size={18} /> Beam Text
+                </button>
+              )
             )}
 
             {status.includes('Complete') && (
@@ -488,7 +603,7 @@ function App() {
               <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Receive Files</h2>
             </div>
 
-            {!status.includes('Connected') && !status.includes('Receiving') && !status.includes('Success') ? (
+            {!status.includes('Connected') && !status.includes('Receiving') && !status.includes('Success') && !receivedText ? (
               <>
                 <div className="input-group" style={{ maxWidth: '240px', margin: '0 auto 1rem' }}>
                   <input
@@ -501,8 +616,15 @@ function App() {
                   <button
                     className="input-icon-btn"
                     onClick={pasteFromClipboard}
+                    style={{ right: '45px' }}
                   >
                     <ClipboardPaste size={18} />
+                  </button>
+                  <button
+                    className="input-icon-btn"
+                    onClick={startScanner}
+                  >
+                    <Camera size={18} />
                   </button>
                 </div>
                 <button className="primary-btn" onClick={handleJoinRoom} style={{ padding: '0.75rem' }}>
@@ -511,8 +633,34 @@ function App() {
               </>
             ) : (
               <div style={{ textAlign: 'center' }}>
-                <ShieldCheck size={48} color="var(--success)" style={{ marginBottom: '0.5rem' }} />
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Waiting for files...</p>
+                {receivedText ? (
+                  <div style={{ animation: 'slideUp 0.3s ease' }}>
+                    <div style={{
+                      background: '#f0fdf4',
+                      padding: '1rem',
+                      borderRadius: '16px',
+                      border: '1px solid #bcf0da',
+                      marginBottom: '1rem',
+                      textAlign: 'left',
+                      maxHeight: '150px',
+                      overflowY: 'auto'
+                    }}>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: '#065f46', wordBreak: 'break-all' }}>{receivedText}</p>
+                    </div>
+                    <button
+                      className="secondary-btn"
+                      onClick={() => copyToClipboard(receivedText)}
+                      style={{ padding: '0.6rem', marginBottom: '1rem' }}
+                    >
+                      <Copy size={16} /> {copied ? 'Copied!' : 'Copy to Clipboard'}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <ShieldCheck size={48} color="var(--success)" style={{ marginBottom: '0.5rem' }} />
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Waiting for files...</p>
+                  </>
+                )}
               </div>
             )}
 
@@ -523,6 +671,37 @@ function App() {
                 <div className="progress-bar" style={{ width: `${progress}%` }}></div>
               </div>
             )}
+          </div>
+        )}
+        {showScanner && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.8)',
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem'
+          }}>
+            <button
+              onClick={() => setShowScanner(false)}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                background: 'white',
+                border: 'none',
+                padding: '10px',
+                borderRadius: '50%',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={24} />
+            </button>
+            <div id="reader" style={{ width: '100%', maxWidth: '400px', background: 'white', borderRadius: '24px', overflow: 'hidden' }}></div>
+            <p style={{ color: 'white', marginTop: '1rem', fontWeight: 600 }}>Scan QR to connect</p>
           </div>
         )}
       </main>
