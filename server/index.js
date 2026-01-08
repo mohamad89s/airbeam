@@ -9,7 +9,7 @@ app.use(cors());
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for now (dev mode)
+    origin: process.env.CORS_ORIGIN || "*",
     methods: ["GET", "POST"]
   }
 });
@@ -43,8 +43,8 @@ io.on('connection', (socket) => {
   socket.on('ice-candidate', (payload) => {
     // payload: { target: socketId, candidate: ... }
     io.to(payload.target).emit('ice-candidate', {
-        candidate: payload.candidate,
-        sender: socket.id
+      candidate: payload.candidate,
+      sender: socket.id
     });
   });
 
