@@ -1,0 +1,19 @@
+{
+    "name": "AirBeam",
+    "short_name": "AirBeam",
+    "description": "Direct P2P File Transfer. No limits, no clouds.",
+    "start_url": "/airbeam/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2563eb",
+    "icons": [
+        {
+            "src": "icon.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "orientation": "portrait",
+    "scope": "/airbeam/"
+}

@@ -77,32 +77,8 @@ function App() {
   };
 
   const wakeLock = useRef(null);
-  const audioContext = useRef(null);
   const backgroundTimer = useRef(null);
 
-  const startSilentAudio = () => {
-    if (audioContext.current) return;
-    try {
-      audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.current.createOscillator();
-      const gainNode = audioContext.current.createGain();
-      gainNode.gain.value = 0.001;
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.current.destination);
-      oscillator.start();
-      console.log('Silent audio heartbeat started');
-    } catch (e) {
-      console.error('Failed to start silent audio', e);
-    }
-  };
-
-  const stopSilentAudio = () => {
-    if (audioContext.current) {
-      audioContext.current.close();
-      audioContext.current = null;
-      console.log('Silent audio heartbeat stopped');
-    }
-  };
 
   const requestWakeLock = async () => {
     if ('wakeLock' in navigator) {
@@ -113,7 +89,6 @@ function App() {
         console.error(`${err.name}, ${err.message}`);
       }
     }
-    startSilentAudio();
   };
 
   const releaseWakeLock = () => {
@@ -122,7 +97,6 @@ function App() {
       wakeLock.current = null;
       console.log('Wake Lock released');
     }
-    stopSilentAudio();
   };
 
   useEffect(() => {
