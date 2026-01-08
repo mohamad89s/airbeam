@@ -34,7 +34,7 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const room = params.get('room');
-    if (room && room.length === 6) {
+    if (room && room.length === 6 && mode !== 'receiver') {
       setRoomId(room);
       setMode('receiver');
       setTimeout(() => {
@@ -43,7 +43,7 @@ function App() {
         initWebRTC(room, false);
       }, 500);
     }
-  }, [mode === 'receiver']);
+  }, []); // Only run on mount to handle shared link
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
@@ -80,7 +80,9 @@ function App() {
   };
 
   const initWebRTC = (room, isInitiator) => {
-    if (rtcManager.current) rtcManager.current.destroy();
+    if (rtcManager.current) {
+      rtcManager.current.destroy();
+    }
 
     rtcManager.current = new WebRTCManager(
       socket,
@@ -88,16 +90,9 @@ function App() {
       (connectionState) => handleConnectionState(connectionState)
     );
 
-    socket.on('offer', (payload) => rtcManager.current.handleOffer(payload.sdp, payload.caller));
-    socket.on('answer', (payload) => rtcManager.current.handleAnswer(payload.sdp));
-    socket.on('ice-candidate', (payload) => rtcManager.current.handleCandidate(payload.candidate));
-    socket.on('user-joined', (userId) => {
-      if (isInitiator) {
-        rtcManager.current.initializePeer(userId, true);
-      }
-    });
-
-    if (!isInitiator) {
+    if (isInitiator) {
+      // Wait for user-joined to initialize peer with target ID
+    } else {
       rtcManager.current.initializePeer(null, false);
     }
   };
