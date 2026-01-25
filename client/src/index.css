@@ -124,6 +124,7 @@ main.container {
   animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   height: 100%;
   max-height: 100%;
+  overflow-y: auto;
 }
 
 .card-header {
@@ -239,13 +240,41 @@ main.container {
 }
 
 @media (max-width: 480px) {
-  .drop-zone {
-    min-height: 120px;
-    padding: var(--s-3);
+  main.container {
+    padding: var(--s-2);
   }
 
   .card {
-    padding: var(--s-4);
+    padding: var(--s-3);
+    gap: var(--s-2);
+  }
+
+  .card-header {
+    margin-bottom: 0;
+  }
+
+  .connection-section {
+    padding: var(--s-3);
+    gap: var(--s-2);
+  }
+
+  .drop-zone {
+    min-height: 100px;
+    padding: var(--s-2);
+    gap: var(--s-2);
+  }
+
+  .qr-mini {
+    padding: var(--s-2);
+  }
+
+  .qr-mini canvas {
+    width: 110px !important;
+    height: 110px !important;
+  }
+
+  .btn-primary {
+    padding: var(--s-3);
   }
 }
 
