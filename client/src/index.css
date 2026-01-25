@@ -156,6 +156,16 @@ main.container {
   align-items: center;
   gap: var(--s-2);
   width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  padding: var(--s-2);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.room-display:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .room-display input {
@@ -212,8 +222,9 @@ main.container {
 
 /* Interactive Elements */
 .drop-zone {
+  width: 100%;
+  min-height: 160px;
   flex: 1;
-  min-height: 0;
   border: 2px dashed var(--border-subtle);
   border-radius: var(--radius-lg);
   display: flex;
@@ -225,6 +236,17 @@ main.container {
   transition: all 0.2s ease;
   cursor: pointer;
   background: white;
+}
+
+@media (max-width: 480px) {
+  .drop-zone {
+    min-height: 120px;
+    padding: var(--s-3);
+  }
+
+  .card {
+    padding: var(--s-4);
+  }
 }
 
 .drop-zone.dragging {

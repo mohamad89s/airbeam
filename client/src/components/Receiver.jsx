@@ -23,14 +23,16 @@ const Receiver = ({
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--s-4)' }}>
                 {!receivedText && !status.includes('Connected') && !status.includes('Receiving') ? (
                     <div className="connection-section" style={{ flex: 1, justifyContent: 'center' }}>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Enter 6-digit code</p>
+                        <button className="icon-btn" onClick={startScanner} style={{ marginBottom: 'var(--s-4)', width: '56px', height: '56px', borderRadius: '50%' }}>
+                            <Camera size={28} />
+                        </button>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 'var(--s-2)' }}>Enter 6-digit code</p>
                         <div className="room-display">
                             <input
                                 value={roomId}
                                 onChange={(e) => setRoomId(e.target.value.replace(/\D/g, '').substring(0, 6))}
                                 placeholder="000000"
                             />
-                            <button className="icon-btn" onClick={startScanner}><Camera size={20} /></button>
                         </div>
                         <button
                             className="btn-primary"

@@ -62,17 +62,21 @@ const Sender = ({
             </div>
 
             <div className="connection-section">
-                <div className="room-display">
-                    <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
-                    <button className="icon-btn" onClick={() => handleCopy(roomId)}>
-                        {copied ? <Check size={18} className="success-text" /> : <Copy size={18} />}
-                    </button>
-                    <button className="icon-btn" onClick={() => handleCopy(`${window.location.origin}?room=${roomId}`)}>
-                        <ExternalLink size={18} />
+                <div style={{ width: '100%', marginBottom: 'var(--s-4)' }}>
+                    <div className="room-display" style={{ marginBottom: 'var(--s-2)' }}>
+                        <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
+                    </div>
+                    <button
+                        className="btn-secondary"
+                        onClick={() => handleCopy(roomId)}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    >
+                        {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
+                        <span>{copied ? 'Copied' : 'Copy Code'}</span>
                     </button>
                 </div>
                 <div className="qr-mini">
-                    <QRCodeCanvas value={roomId} size={100} />
+                    <QRCodeCanvas value={roomId} size={160} />
                 </div>
             </div>
 
