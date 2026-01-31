@@ -136,7 +136,7 @@ function App() {
                 roomId={roomId}
                 setRoomId={setRoomId}
                 startScanner={startScanner}
-                joinRoom={() => { socket.emit('join-room', roomId); initWebRTC(roomId, false); }}
+                joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', roomId); initWebRTC(roomId, false); }}
                 handleCopy={handleCopy}
               />
             )}

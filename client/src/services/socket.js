@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL ||
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
         ? `http://${window.location.hostname}:3001`
-        : `https://${window.location.hostname}`);
+        : `http://${window.location.hostname}:3001`);
 
 export const socket = io(SIGNALING_SERVER_URL, {
     autoConnect: false,

@@ -21,7 +21,7 @@ const Receiver = ({
             </div>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--s-4)' }}>
-                {!receivedText && !status.includes('Connected') && !status.includes('Receiving') ? (
+                {!receivedText && !status.includes('Connected') && !status.includes('Receiving') && !status.includes('Connecting') ? (
                     <div className="connection-section" style={{ flex: 1, justifyContent: 'center' }}>
                         <button className="icon-btn" onClick={startScanner} style={{ marginBottom: 'var(--s-4)', width: '56px', height: '56px', borderRadius: '50%' }}>
                             <Camera size={28} />
@@ -54,7 +54,9 @@ const Receiver = ({
                         ) : (
                             <div style={{ textAlign: 'center', padding: 'var(--s-8) 0' }}>
                                 <ShieldCheck size={64} color="var(--success)" style={{ opacity: 0.8 }} />
-                                <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: 'var(--text-muted)' }}>Waiting for sender...</p>
+                                <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: 'var(--text-muted)' }}>
+                                    {status.includes('Connecting') ? 'Connecting to room...' : 'Waiting for sender...'}
+                                </p>
                             </div>
                         )}
                     </div>
