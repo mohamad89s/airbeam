@@ -114,7 +114,7 @@ const Receiver = ({
                         </div>
                     ) : (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', textAlign: 'center', gap: 'var(--s-4)' }}>
-                            <div style={{ padding: 'var(--s-8)', background: 'var(--bg-input)', borderRadius: '50%', color: 'var(--primary)', opacity: 0.6 }}>
+                            <div className="desktop-only" style={{ padding: 'var(--s-8)', background: 'var(--bg-input)', borderRadius: '50%', color: 'var(--primary)', opacity: 0.6 }}>
                                 <ArrowRight size={48} strokeWidth={1} />
                             </div>
                             <div>

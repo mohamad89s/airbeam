@@ -111,21 +111,23 @@ const Sender = ({
             <div className="desktop-layout">
                 <div className="sidebar-panel">
                     <div className="connection-section">
-                        <div className="sender-room-info">
-                            <div className="room-display" style={{ marginBottom: 'var(--s-2)' }}>
-                                <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
+                        <div className="room-qr-container">
+                            <div className="sender-room-info">
+                                <div className="room-display">
+                                    <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
+                                </div>
+                                <button
+                                    className="btn-secondary"
+                                    onClick={() => handleCopy(roomId)}
+                                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                >
+                                    {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
+                                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                                </button>
                             </div>
-                            <button
-                                className="btn-secondary"
-                                onClick={() => handleCopy(roomId)}
-                                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                            >
-                                {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
-                                <span>{copied ? 'Copied' : 'Copy Code'}</span>
-                            </button>
-                        </div>
-                        <div className="qr-mini">
-                            <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
+                            <div className="qr-mini">
+                                <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
+                            </div>
                         </div>
                         <div style={{ textAlign: 'center', marginTop: 'var(--s-2)', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
                             Ask receiver to scan this QR <br /> or enter the 6-digit code.
@@ -142,7 +144,7 @@ const Sender = ({
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
-                                style={{ minHeight: files.length > 0 ? '120px' : '200px' }}
+                                style={{ minHeight: files.length > 0 ? '80px' : '100px' }}
                             >
                                 <input
                                     ref={fileInputRef}

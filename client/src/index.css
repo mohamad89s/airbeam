@@ -209,6 +209,42 @@ main.container {
   border: 1px solid var(--border-light);
 }
 
+.room-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .room-qr-container {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: var(--s-3);
+  }
+
+  .sender-room-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--s-2);
+    min-width: 0;
+  }
+
+  .qr-mini {
+    flex-shrink: 0;
+    padding: var(--s-2) !important;
+  }
+
+  .qr-mini canvas {
+    width: 100px !important;
+    height: 100px !important;
+  }
+}
+
 .room-display {
   display: flex;
   align-items: center;
@@ -227,14 +263,16 @@ main.container {
 }
 
 .room-display input {
-  flex: 1;
+  width: 100%;
   background: transparent;
   border: none;
+  padding: 0;
+  margin: 0;
   font-family: 'Outfit', sans-serif;
   font-size: 1.5rem;
   font-weight: 800;
   text-align: center;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   color: var(--primary);
 }
 
@@ -281,7 +319,10 @@ main.container {
 /* Interactive Elements */
 .drop-zone {
   width: 100%;
-  min-height: 160px;
+  min-height: 100px;
+  /* Reduced from 160px -> 130px -> 100px */
+  margin: var(--s-4) 0;
+  /* Space above and below */
   flex: 1;
   border: 2px dashed var(--border-subtle);
   border-radius: var(--radius-lg);
