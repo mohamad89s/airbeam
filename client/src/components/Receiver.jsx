@@ -119,7 +119,7 @@ const Receiver = ({
                             </div>
                             <div>
                                 <p style={{ fontWeight: 700, margin: 0 }}>Waiting for connection</p>
-                                <p style={{ fontSize: '0.85rem' }}>Enter the code on the left to start receiving</p>
+                                <p style={{ fontSize: '0.85rem' }}>Enter the code to start receiving</p>
                             </div>
                         </div>
                     )}

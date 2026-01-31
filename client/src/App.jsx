@@ -77,7 +77,7 @@ function App() {
       const newRoomId = Math.floor(100000 + Math.random() * 900000).toString();
       setRoomId(newRoomId);
       socket.emit('join-room', { roomId: newRoomId, role: 'sender' });
-      setStatus('Ready to beam');
+      setStatus('Waiting for receiver');
       initWebRTC(newRoomId, true);
     } else {
       setRoomId('');

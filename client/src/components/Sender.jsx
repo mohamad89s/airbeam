@@ -55,7 +55,7 @@ const Sender = ({
     const isSuccess = status.includes('successfully');
 
     const handleBeamMore = () => {
-        setStatus('Ready to beam');
+        setStatus('Waiting for receiver');
         resetTransfer();
     };
 
