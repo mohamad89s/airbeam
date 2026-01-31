@@ -110,7 +110,11 @@ export const useWebRTC = (onReceived) => {
     }, [handleDataReceived, handleConnectionState]);
 
     const sendFiles = async (files) => {
-        if (!files.length || !rtcManager.current) return;
+        if (!files.length) throw new Error('No files selected');
+        if (!rtcManager.current || !rtcManager.current.dataChannel || rtcManager.current.dataChannel.readyState !== 'open') {
+            throw new Error('No receiver connected. Share the code first!');
+        }
+
         setStatus('Sending...');
         requestWakeLock();
         for (let i = 0; i < files.length; i++) {
@@ -125,7 +129,9 @@ export const useWebRTC = (onReceived) => {
                     continue;
                 }
                 const chunk = await file.slice(offset, offset + CHUNK_SIZE).arrayBuffer();
-                rtcManager.current.sendData(chunk);
+                const success = rtcManager.current.sendData(chunk);
+                if (!success) throw new Error('Transfer interrupted. Please try again.');
+
                 offset += chunk.byteLength;
                 setProgress((offset / file.size) * 100);
 
@@ -140,8 +146,12 @@ export const useWebRTC = (onReceived) => {
     };
 
     const sendText = (text) => {
-        if (!text || !rtcManager.current) return;
-        rtcManager.current.sendData(JSON.stringify({ type: 'text', content: text }));
+        if (!text) throw new Error('Text is empty');
+        if (!rtcManager.current || !rtcManager.current.dataChannel || rtcManager.current.dataChannel.readyState !== 'open') {
+            throw new Error('No receiver connected. Share the code first!');
+        }
+        const success = rtcManager.current.sendData(JSON.stringify({ type: 'text', content: text }));
+        if (!success) throw new Error('Failed to send text. Check connection.');
         setStatus('Text sent successfully!');
     };
 

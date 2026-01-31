@@ -39,6 +39,21 @@ const Receiver = ({
                             />
                         </div>
                         <button
+                            className="btn-secondary"
+                            onClick={async () => {
+                                try {
+                                    const text = await navigator.clipboard.readText();
+                                    const cleaned = text.replace(/\D/g, '').substring(0, 6);
+                                    if (cleaned) setRoomId(cleaned);
+                                } catch (err) {
+                                    console.error('Failed to paste:', err);
+                                }
+                            }}
+                            style={{ margin: 'var(--s-2) 0', width: 'auto', padding: '6px 12px', fontSize: '0.8rem' }}
+                        >
+                            <Copy size={14} /> Paste Code
+                        </button>
+                        <button
                             className="btn-primary"
                             onClick={joinRoom}
                             style={{ marginTop: 'var(--s-2)' }}

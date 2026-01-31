@@ -122,7 +122,6 @@ function App() {
   };
 
   const handleSendFiles = () => {
-    showToast('Starting file beam...', 'info');
     sendFiles(files).then(() => {
       showToast('Files beamed successfully!', 'success');
       addToHistory(files.map(f => ({
@@ -131,22 +130,26 @@ function App() {
         size: f.size,
         direction: 'sent',
         timestamp: Date.now()
-      })), roomId);
+      })), roomIdRef.current);
     }).catch(err => {
-      showToast('Failed to beam files.', 'error');
+      showToast(err.message || 'Failed to beam files.', 'error');
     });
   };
 
   const handleSendText = () => {
-    showToast('Text beamed!', 'success');
-    sendText(sharedText);
-    addToHistory([{
-      type: 'text',
-      name: sharedText.length > 20 ? sharedText.substring(0, 20) + '...' : sharedText,
-      direction: 'sent',
-      timestamp: Date.now()
-    }], roomId);
-    setSharedText('');
+    try {
+      sendText(sharedText);
+      showToast('Text beamed!', 'success');
+      addToHistory([{
+        type: 'text',
+        name: sharedText.length > 20 ? sharedText.substring(0, 20) + '...' : sharedText,
+        direction: 'sent',
+        timestamp: Date.now()
+      }], roomIdRef.current);
+      setSharedText('');
+    } catch (err) {
+      showToast(err.message || 'Failed to beam text.', 'error');
+    }
   };
 
   return (

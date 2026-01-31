@@ -174,7 +174,11 @@ const Sender = ({
                 />
             )}
 
-            <button className="btn-primary" onClick={transferType === 'file' ? sendFiles : sendText} disabled={!files.length && !sharedText}>
+            <button
+                className="btn-primary"
+                onClick={transferType === 'file' ? sendFiles : sendText}
+                disabled={transferType === 'file' ? files.length === 0 : !sharedText.trim()}
+            >
                 <Zap size={18} fill="currentColor" /> {transferType === 'file' ? 'Beam Files' : 'Beam Text'}
             </button>
         </div>
