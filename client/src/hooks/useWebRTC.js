@@ -3,7 +3,7 @@ import { socket } from '../services/socket';
 import { WebRTCManager } from '../services/webrtc';
 import { calculateTransferStats } from '../utils/helpers';
 
-export const useWebRTC = () => {
+export const useWebRTC = (onReceived) => {
     const [status, setStatus] = useState('');
     const [progress, setProgress] = useState(0);
     const [stats, setStats] = useState({ speed: '0 B/s', eta: '0s' });
@@ -50,6 +50,14 @@ export const useWebRTC = () => {
                     setReceivedText(parsed.content);
                     setStatus('Message received');
                     requestWakeLock();
+                    if (onReceived) {
+                        onReceived([{
+                            type: 'text',
+                            name: parsed.content.length > 20 ? parsed.content.substring(0, 20) + '...' : parsed.content,
+                            direction: 'received',
+                            timestamp: Date.now()
+                        }]);
+                    }
                 }
             } catch (e) { }
         } else {
@@ -76,6 +84,15 @@ export const useWebRTC = () => {
                 setStatus('Download complete');
                 setProgress(100);
                 releaseWakeLock();
+                if (onReceived) {
+                    onReceived([{
+                        type: 'file',
+                        name: meta.name,
+                        size: meta.size,
+                        direction: 'received',
+                        timestamp: Date.now()
+                    }]);
+                }
             }
         }
     }, []);

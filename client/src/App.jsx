@@ -5,6 +5,7 @@ import { copyToClipboard } from './utils/helpers'
 import { useWebRTC } from './hooks/useWebRTC'
 import { useTransfer } from './hooks/useTransfer'
 import { useToast } from './hooks/useToast'
+import { useHistory } from './hooks/useHistory'
 import Navbar from './components/common/Navbar'
 import Footer from './components/common/Footer'
 import Toast from './components/common/Toast'
@@ -12,6 +13,7 @@ import Home from './components/Home'
 import Sender from './components/Sender'
 import Receiver from './components/Receiver'
 import Scanner from './components/Scanner'
+import HistoryModal from './components/HistoryModal'
 import './index.css'
 
 function App() {
@@ -19,13 +21,16 @@ function App() {
   const [roomId, setRoomId] = useState('');
   const [showScanner, setShowScanner] = useState(false);
 
+  const { history, addToHistory, clearHistory } = useHistory();
+  const [showHistory, setShowHistory] = useState(false);
+
   const {
     status, setStatus, progress, stats, receivedText,
     initWebRTC, sendFiles, sendText, destroy: destroyWebRTC
-  } = useWebRTC();
+  } = useWebRTC(addToHistory);
 
   const {
-    files, setFiles, sharedText, setSharedText,
+    files, setFiles, removeFile, renameFile, sharedText, setSharedText,
     transferType, setTransferType, copied, setCopied, resetTransfer
   } = useTransfer();
 
@@ -103,6 +108,13 @@ function App() {
     showToast('Starting file beam...', 'info');
     sendFiles(files).then(() => {
       showToast('Files beamed successfully!', 'success');
+      addToHistory(files.map(f => ({
+        type: 'file',
+        name: f.name,
+        size: f.size,
+        direction: 'sent',
+        timestamp: Date.now()
+      })));
     }).catch(err => {
       showToast('Failed to beam files.', 'error');
     });
@@ -111,12 +123,18 @@ function App() {
   const handleSendText = () => {
     showToast('Text beamed!', 'success');
     sendText(sharedText);
+    addToHistory([{
+      type: 'text',
+      name: sharedText.length > 20 ? sharedText.substring(0, 20) + '...' : sharedText,
+      direction: 'sent',
+      timestamp: Date.now()
+    }]);
     setSharedText('');
   };
 
   return (
     <>
-      <Navbar onLogoClick={goHome} />
+      <Navbar onLogoClick={goHome} onHistoryClick={() => setShowHistory(true)} />
 
       <main className="container">
         {mode === 'home' ? (
@@ -133,6 +151,8 @@ function App() {
                 copied={copied}
                 files={files}
                 setFiles={setFiles}
+                removeFile={removeFile}
+                renameFile={renameFile}
                 sharedText={sharedText}
                 setSharedText={setSharedText}
                 sendFiles={handleSendFiles}
@@ -179,6 +199,13 @@ function App() {
             <Toast {...toast} onClose={hideToast} />
           </div>
         )}
+
+        <HistoryModal
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
+          history={history}
+          onClear={clearHistory}
+        />
       </main>
 
       <Footer />

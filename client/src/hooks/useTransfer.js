@@ -12,9 +12,27 @@ export const useTransfer = () => {
         setCopied(false);
     };
 
+    const removeFile = (index) => {
+        setFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const renameFile = (index, newName) => {
+        setFiles(prev => prev.map((file, i) => {
+            if (i === index) {
+                return new File([file.slice(0, file.size, file.type)], newName, {
+                    type: file.type,
+                    lastModified: file.lastModified
+                });
+            }
+            return file;
+        }));
+    };
+
     return {
         files,
         setFiles,
+        removeFile,
+        renameFile,
         sharedText,
         setSharedText,
         transferType,

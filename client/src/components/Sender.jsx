@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import FileList from './FileList';
 
 const Sender = ({
     goHome,
@@ -11,6 +12,8 @@ const Sender = ({
     copied,
     files,
     setFiles,
+    removeFile,
+    renameFile,
     sharedText,
     setSharedText,
     sendFiles,
@@ -32,14 +35,15 @@ const Sender = ({
         e.preventDefault();
         setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            setFiles(Array.from(e.dataTransfer.files));
+            setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
         }
     };
 
     const onFileInputChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
-            setFiles(Array.from(e.target.files));
+            setFiles(prev => [...prev, ...Array.from(e.target.files)]);
         }
+        e.target.value = null; // Allow re-selecting the same file
     };
 
     return (
@@ -81,27 +85,37 @@ const Sender = ({
             </div>
 
             {transferType === 'file' ? (
-                <div
-                    className={`drop-zone ${isDragging ? 'dragging' : ''}`}
-                    onClick={() => document.getElementById('file-input').click()}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                >
-                    <input id="file-input" type="file" multiple style={{ display: 'none' }}
-                        onChange={onFileInputChange} />
-                    <div className="icon-wrap" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-soft)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FileText size={24} />
+                <>
+                    <div
+                        className={`drop-zone ${isDragging ? 'dragging' : ''}`}
+                        onClick={() => document.getElementById('file-input').click()}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        style={{ minHeight: files.length > 0 ? '120px' : '240px' }}
+                    >
+                        <input id="file-input" type="file" multiple style={{ display: 'none' }}
+                            onChange={onFileInputChange} />
+                        <div className="icon-wrap" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-soft)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <FileText size={24} />
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                            <p style={{ fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
+                                {files.length > 0 ? 'Add more files' : 'Choose files'}
+                            </p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                {isDragging ? "Drop them here!" : "Tap to browse or drag & drop"}
+                            </p>
+                        </div>
                     </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <p style={{ fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
-                            {files.length > 0 ? `${files.length} files selected` : 'Choose files'}
-                        </p>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                            {isDragging ? "Drop them here!" : "Tap to browse or drag & drop"}
-                        </p>
-                    </div>
-                </div>
+                    {files.length > 0 && (
+                        <FileList
+                            files={files}
+                            onRemove={removeFile}
+                            onRename={renameFile}
+                        />
+                    )}
+                </>
             ) : (
                 <textarea
                     className="text-area"
