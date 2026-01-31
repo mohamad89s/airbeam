@@ -76,7 +76,7 @@ const Sender = ({
                     </button>
                 </div>
                 <div className="qr-mini">
-                    <QRCodeCanvas value={roomId} size={160} />
+                    <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
                 </div>
             </div>
 

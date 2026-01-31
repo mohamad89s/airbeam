@@ -84,9 +84,19 @@ function App() {
   };
 
   const handleScan = (text) => {
-    setRoomId(text);
-    socket.emit('join-room', text);
-    initWebRTC(text, false);
+    let room = text;
+    try {
+      const url = new URL(text);
+      const roomParam = url.searchParams.get('room');
+      if (roomParam) room = roomParam;
+    } catch (e) {
+      // Not a URL, use as is
+    }
+
+    setRoomId(room);
+    setStatus('Connecting...');
+    socket.emit('join-room', room);
+    initWebRTC(room, false);
   };
 
   const handleSendFiles = () => {
