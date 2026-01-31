@@ -167,6 +167,44 @@ main.container {
   }
 }
 
+/* Mobile-only Receiver Spacing */
+@media (max-width: 767px) {
+  .receiver-layout .main-panel {
+    margin-top: var(--s-6);
+  }
+
+  .sender-layout .main-panel>div {
+    gap: var(--s-2) !important;
+    /* Reduces space between drop-zone and FileList */
+  }
+
+  .sender-layout .drop-zone {
+    margin-bottom: 0 !important;
+    /* Let the reduced gap handle it */
+  }
+
+  .sender-layout .btn-primary {
+    margin-top: var(--s-8) !important;
+    /* Stronger separation from the file list on mobile */
+  }
+
+  .sender-layout .text-area {
+    margin-top: var(--s-4);
+    /* Space above text box */
+    min-height: 120px !important;
+    /* Shorter box on mobile */
+    max-height: 200px;
+    /* Prevent it from taking too much space */
+  }
+}
+
+/* Base Desktop min-height for text-area */
+@media (min-width: 768px) {
+  .text-area {
+    min-height: 200px;
+  }
+}
+
 /* Base Card Styles */
 .card {
   background: var(--bg-card);

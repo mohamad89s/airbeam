@@ -24,7 +24,7 @@ const Receiver = ({
                 <h2 className="card-title">Receive</h2>
             </div>
 
-            <div className="desktop-layout" style={{ gridTemplateColumns: isConnected ? '1fr' : undefined }}>
+            <div className="desktop-layout receiver-layout" style={{ gridTemplateColumns: isConnected ? '1fr' : undefined }}>
                 {!isConnected && (
                     <div className="sidebar-panel">
                         <div className="connection-section" style={{ height: 'auto', minHeight: 'unset' }}>

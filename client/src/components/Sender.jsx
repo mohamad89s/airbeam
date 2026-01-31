@@ -108,7 +108,7 @@ const Sender = ({
                 </div>
             </div>
 
-            <div className="desktop-layout">
+            <div className="desktop-layout sender-layout">
                 <div className="sidebar-panel">
                     <div className="connection-section">
                         <div className="room-qr-container">
@@ -180,7 +180,7 @@ const Sender = ({
                             placeholder="Enter text or paste links..."
                             value={sharedText}
                             onChange={(e) => setSharedText(e.target.value)}
-                            style={{ flex: 1, minHeight: '200px' }}
+                            style={{ flex: 1 }}
                         />
                     )}
 
