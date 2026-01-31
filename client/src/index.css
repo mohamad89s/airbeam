@@ -259,23 +259,47 @@ main.container {
   }
 
   .drop-zone {
-    min-height: 100px;
+    min-height: 80px;
+    /* Even smaller min-height */
     padding: var(--s-2);
-    gap: var(--s-2);
+    gap: var(--s-1);
+    /* Tighter gap */
+    flex: 1;
+    /* Ensure it shrinks if needed */
   }
 
   .qr-mini {
-    padding: var(--s-2);
+    padding: var(--s-1);
+    display: flex;
+    justify-content: center;
   }
 
   .qr-mini canvas {
-    width: 110px !important;
-    height: 110px !important;
+    width: 100px !important;
+    /* Smaller QR on mobile */
+    height: 100px !important;
   }
 
   .btn-primary {
     padding: var(--s-3);
   }
+
+  footer {
+    height: 24px;
+    /* Tiny footer */
+    font-size: 0.6rem;
+    gap: var(--s-2);
+    margin-top: 2px;
+  }
+
+  .sender-room-info {
+    margin-bottom: var(--s-1) !important;
+  }
+}
+
+.sender-room-info {
+  width: 100%;
+  margin-bottom: var(--s-4);
 }
 
 .drop-zone.dragging {

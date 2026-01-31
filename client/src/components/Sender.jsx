@@ -62,7 +62,7 @@ const Sender = ({
             </div>
 
             <div className="connection-section">
-                <div style={{ width: '100%', marginBottom: 'var(--s-4)' }}>
+                <div className="sender-room-info">
                     <div className="room-display" style={{ marginBottom: 'var(--s-2)' }}>
                         <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
                     </div>
