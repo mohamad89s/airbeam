@@ -38,7 +38,18 @@ function App() {
 
   useEffect(() => {
     connectSocket();
-    return () => disconnectSocket();
+    socket.on('error', (msg) => {
+      showToast(msg, 'error');
+      setStatus('');
+      if (msg.includes('Room not found') || msg.includes('full')) {
+        setRoomId('');
+        setMode('receiver'); // Ensure we stay on receiver screen but reset
+      }
+    });
+    return () => {
+      socket.off('error');
+      disconnectSocket();
+    };
   }, []);
 
   useEffect(() => {
@@ -48,7 +59,7 @@ function App() {
       setRoomId(room);
       setMode('receiver');
       setTimeout(() => {
-        socket.emit('join-room', room);
+        socket.emit('join-room', { roomId: room, role: 'receiver' });
         setStatus('Joining via link...');
         initWebRTC(room, false);
       }, 500);
@@ -60,7 +71,7 @@ function App() {
     if (selectedMode === 'sender') {
       const newRoomId = Math.floor(100000 + Math.random() * 900000).toString();
       setRoomId(newRoomId);
-      socket.emit('join-room', newRoomId);
+      socket.emit('join-room', { roomId: newRoomId, role: 'sender' });
       setStatus('Ready to beam');
       initWebRTC(newRoomId, true);
     } else {
@@ -70,6 +81,7 @@ function App() {
   };
 
   const goHome = () => {
+    if (roomId) socket.emit('leave-room', roomId);
     setMode('home');
     setRoomId('');
     resetTransfer();
@@ -100,7 +112,7 @@ function App() {
 
     setRoomId(room);
     setStatus('Connecting...');
-    socket.emit('join-room', room);
+    socket.emit('join-room', { roomId: room, role: 'receiver' });
     initWebRTC(room, false);
   };
 
@@ -157,6 +169,9 @@ function App() {
                 setSharedText={setSharedText}
                 sendFiles={handleSendFiles}
                 sendText={handleSendText}
+                status={status}
+                setStatus={setStatus}
+                resetTransfer={resetTransfer}
               />
             ) : (
               <Receiver
@@ -166,14 +181,18 @@ function App() {
                 roomId={roomId}
                 setRoomId={setRoomId}
                 startScanner={startScanner}
-                joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', roomId); initWebRTC(roomId, false); }}
+                joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', { roomId, role: 'receiver' }); initWebRTC(roomId, false); }}
                 handleCopy={handleCopy}
+                history={history}
               />
             )}
 
             {(progress > 0 || status) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)', marginTop: 'var(--s-4)' }}>
-                <div className="status-bar">
+                <div className={`status-bar ${status.toLowerCase().includes('successfully') || status.toLowerCase().includes('connected') || status.toLowerCase().includes('ready') ? 'success' :
+                    status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
+                      ''
+                  }`}>
                   <span>{status}</span>
                   {progress > 0 && progress < 100 && <span>{Math.round(progress)}% • {stats.speed}</span>}
                 </div>

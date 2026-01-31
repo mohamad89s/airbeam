@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import FileList from './FileList';
@@ -17,9 +17,13 @@ const Sender = ({
     sharedText,
     setSharedText,
     sendFiles,
-    sendText
+    sendText,
+    status,
+    setStatus,
+    resetTransfer
 }) => {
     const [isDragging, setIsDragging] = useState(false);
+    const fileInputRef = useRef(null);
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -43,8 +47,47 @@ const Sender = ({
         if (e.target.files && e.target.files.length > 0) {
             setFiles(prev => [...prev, ...Array.from(e.target.files)]);
         }
-        e.target.value = null; // Allow re-selecting the same file
+        // Small delay to ensure browser processed the selection
+        const target = e.target;
+        setTimeout(() => { target.value = null; }, 100);
     };
+
+    const isSuccess = status.includes('successfully');
+
+    const handleBeamMore = () => {
+        setStatus('Ready to beam');
+        resetTransfer();
+    };
+
+    if (isSuccess) {
+        return (
+            <div className="card">
+                <div className="card-header">
+                    <button onClick={goHome} className="icon-btn" style={{ padding: '6px' }}>
+                        <ArrowLeft size={20} />
+                    </button>
+                    <h2 className="card-title">Success</h2>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--s-4)', justifyContent: 'center', textAlign: 'center', padding: 'var(--s-8) 0' }}>
+                    <div style={{ position: 'relative', display: 'inline-block', margin: '0 auto' }}>
+                        <Zap size={64} color="var(--success)" fill="var(--success)" style={{ opacity: 0.8 }} />
+                        <div style={{ position: 'absolute', top: -10, right: -10, background: 'var(--success)', color: 'white', borderRadius: '50%', padding: '4px' }}>
+                            <Check size={20} strokeWidth={3} />
+                        </div>
+                    </div>
+                    <p style={{ marginTop: 'var(--s-4)', fontWeight: 700, color: 'var(--success)', fontSize: '1.2rem' }}>
+                        {status}
+                    </p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        Your beam was delivered instantly.
+                    </p>
+                    <button className="btn-primary" onClick={handleBeamMore} style={{ marginTop: 'var(--s-6)', alignSelf: 'center' }}>
+                        Beam More
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="card">
@@ -88,14 +131,20 @@ const Sender = ({
                 <>
                     <div
                         className={`drop-zone ${isDragging ? 'dragging' : ''}`}
-                        onClick={() => document.getElementById('file-input').click()}
+                        onClick={() => fileInputRef.current?.click()}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                         style={{ minHeight: files.length > 0 ? '120px' : '240px' }}
                     >
-                        <input id="file-input" type="file" multiple style={{ display: 'none' }}
-                            onChange={onFileInputChange} />
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            multiple
+                            style={{ display: 'none' }}
+                            onChange={onFileInputChange}
+                            onClick={e => e.stopPropagation()}
+                        />
                         <div className="icon-wrap" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-soft)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <FileText size={24} />
                         </div>

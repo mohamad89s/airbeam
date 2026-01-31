@@ -7,6 +7,8 @@
   --primary-hover: #0052d6;
   --success: #00c853;
   --success-soft: rgba(0, 200, 83, 0.08);
+  --error: #ef4444;
+  --error-soft: rgba(239, 68, 68, 0.08);
 
   --bg-main: #f4f7fa;
   --bg-card: #ffffff;
@@ -529,6 +531,20 @@ main.container {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
+  background: var(--surface-subtle);
+  padding: var(--s-2) var(--s-3);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.status-bar.success {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success), transparent 90%);
+}
+
+.status-bar.error {
+  color: var(--error);
+  background: color-mix(in srgb, var(--error), transparent 90%);
 }
 
 .progress-track {
@@ -581,6 +597,7 @@ footer {
   align-items: center;
   gap: 4px;
 }
+
 /* File List Styles */
 .file-list {
   display: flex;
@@ -737,7 +754,7 @@ footer {
   height: 20px;
   border-radius: 50%;
   background: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

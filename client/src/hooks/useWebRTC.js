@@ -43,12 +43,13 @@ export const useWebRTC = (onReceived) => {
                     receivedChunks.current = [];
                     receivedSize.current = 0;
                     startTime.current = Date.now();
+                    setReceivedText(''); // Clear previous text to show file progress
                     setStatus(`Receiving ${parsed.name}`);
                     setProgress(0);
                     requestWakeLock();
                 } else if (parsed.type === 'text') {
                     setReceivedText(parsed.content);
-                    setStatus('Message received');
+                    setStatus('Text received successfully!');
                     requestWakeLock();
                     if (onReceived) {
                         onReceived([{
@@ -81,7 +82,8 @@ export const useWebRTC = (onReceived) => {
                 a.download = meta.name;
                 a.click();
                 URL.revokeObjectURL(url);
-                setStatus('Download complete');
+                URL.revokeObjectURL(url);
+                setStatus('File received successfully!');
                 setProgress(100);
                 releaseWakeLock();
                 if (onReceived) {
@@ -133,14 +135,14 @@ export const useWebRTC = (onReceived) => {
                 }
             }
         }
-        setStatus('Beam successful');
+        setStatus('File sent successfully!');
         releaseWakeLock();
     };
 
     const sendText = (text) => {
         if (!text || !rtcManager.current) return;
         rtcManager.current.sendData(JSON.stringify({ type: 'text', content: text }));
-        setStatus('Text shared');
+        setStatus('Text sent successfully!');
     };
 
     const destroy = useCallback(() => {

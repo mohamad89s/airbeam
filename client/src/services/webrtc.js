@@ -21,6 +21,7 @@ export class WebRTCManager {
         this.boundHandleAnswer = (payload) => this.handleAnswer(payload.sdp);
         this.boundHandleCandidate = (payload) => this.handleCandidate(payload.candidate);
         this.boundUserJoined = (userId) => this.handleUserJoined(userId);
+        this.boundUserLeft = (userId) => this.handleUserLeft(userId);
 
         this.setupSocketListeners();
     }
@@ -30,6 +31,7 @@ export class WebRTCManager {
         this.socket.on('answer', this.boundHandleAnswer);
         this.socket.on('ice-candidate', this.boundHandleCandidate);
         this.socket.on('user-joined', this.boundUserJoined);
+        this.socket.on('user-left', this.boundUserLeft);
     }
 
     removeSocketListeners() {
@@ -37,6 +39,7 @@ export class WebRTCManager {
         this.socket.off('answer', this.boundHandleAnswer);
         this.socket.off('ice-candidate', this.boundHandleCandidate);
         this.socket.off('user-joined', this.boundUserJoined);
+        this.socket.off('user-left', this.boundUserLeft);
     }
 
     initializePeer(remotePeerId, isInitiator) {
@@ -89,12 +92,24 @@ export class WebRTCManager {
 
     handleUserJoined(userId) {
         console.log('User joined event received for:', userId);
-        // If we have a different peer ID, we need to reset and start over
-        if (this.isInitiator && this.remotePeerId !== userId) {
-            console.log(`Remote peer ID changed from ${this.remotePeerId} to ${userId}. Re-initializing.`);
+        // If we are initiator, we always re-initialize to ensure a fresh connection
+        // even if it's the same user re-joining (e.g. after a page refresh or go-home)
+        if (this.isInitiator) {
+            console.log(`Initiator resetting connection for user: ${userId}`);
             this.initializePeer(userId, true);
-        } else if (this.isInitiator && !this.remotePeerId) {
-            this.initializePeer(userId, true);
+        }
+    }
+
+    handleUserLeft(userId) {
+        console.log('User left event received for:', userId);
+        if (this.remotePeerId === userId) {
+            console.log('Remote peer left. Closing connection.');
+            if (this.peerConnection) {
+                this.peerConnection.close();
+                this.peerConnection = null;
+            }
+            this.remotePeerId = null;
+            this.onStatusChange('disconnected');
         }
     }
 

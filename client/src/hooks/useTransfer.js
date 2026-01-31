@@ -19,8 +19,27 @@ export const useTransfer = () => {
     const renameFile = (index, newName) => {
         setFiles(prev => prev.map((file, i) => {
             if (i === index) {
-                return new File([file.slice(0, file.size, file.type)], newName, {
-                    type: file.type,
+                // Try to infer new type from extension
+                const extension = newName.split('.').pop().toLowerCase();
+                let newType = file.type;
+
+                const mimeMap = {
+                    'png': 'image/png',
+                    'jpg': 'image/jpeg',
+                    'jpeg': 'image/jpeg',
+                    'gif': 'image/gif',
+                    'pdf': 'application/pdf',
+                    'txt': 'text/plain',
+                    'mp4': 'video/mp4',
+                    'zip': 'application/zip'
+                };
+
+                if (mimeMap[extension]) {
+                    newType = mimeMap[extension];
+                }
+
+                return new File([file], newName, {
+                    type: newType,
                     lastModified: file.lastModified
                 });
             }

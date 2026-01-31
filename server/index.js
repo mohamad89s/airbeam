@@ -60,17 +60,29 @@ io.on('connection', (socket) => {
     console.log(`🚀 Transport upgraded for ${socket.id} to: ${transport.name}`);
   });
 
-  socket.on('join-room', (roomId) => {
+  socket.on('join-room', (payload) => {
+    // Support both string (legacy) and object payload
+    let roomId = typeof payload === 'string' ? payload : payload.roomId;
+    const role = typeof payload === 'string' ? 'unknown' : payload.role;
+
+    // Convert number to string if necessary
+    if (typeof roomId === 'number') roomId = roomId.toString();
+
     // SECURITY: Input Validation
     if (!roomId || typeof roomId !== 'string' || !/^\d{6}$/.test(roomId)) {
-      console.warn(`Refused join for invalid Room ID: ${roomId} from ${socket.id}`);
+      console.warn(`Refused join for invalid Room ID: ${roomId} (Type: ${typeof roomId}) from ${socket.id}`);
       socket.emit('error', 'Invalid Room ID format');
       return;
     }
 
-    // Check how many users are in the room
     const clients = io.sockets.adapter.rooms.get(roomId);
     const numClients = clients ? clients.size : 0;
+
+    // Logic: Receivers cannot create rooms, they must join existing ones.
+    if (role === 'receiver' && numClients === 0) {
+      socket.emit('error', 'Room not found. Ask sender for code.');
+      return;
+    }
 
     // SECURITY: Room Locking
     if (numClients >= 2) {
@@ -80,11 +92,19 @@ io.on('connection', (socket) => {
     }
 
     socket.join(roomId);
-    console.log(`User ${socket.id} joined room ${roomId}`);
+    console.log(`User ${socket.id} joined room ${roomId} as ${role}`);
     console.log(`Room ${roomId} now has ${numClients + 1} users`);
 
     // Notify others in the room
     socket.to(roomId).emit('user-joined', socket.id);
+  });
+
+  socket.on('leave-room', (roomId) => {
+    if (roomId) {
+      socket.leave(roomId);
+      socket.to(roomId).emit('user-left', socket.id);
+      console.log(`User ${socket.id} left room ${roomId}`);
+    }
   });
 
   socket.on('offer', (payload) => {
