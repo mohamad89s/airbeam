@@ -4,7 +4,13 @@ import { formatBytes } from '../utils/helpers';
 
 const FileItem = ({ file, index, onRemove, onRename }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [newName, setNewName] = useState(file.name);
+
+    // Split name and extension
+    const lastDotIndex = file.name.lastIndexOf('.');
+    const baseName = lastDotIndex !== -1 ? file.name.substring(0, lastDotIndex) : file.name;
+    const extension = lastDotIndex !== -1 ? file.name.substring(lastDotIndex) : '';
+
+    const [newName, setNewName] = useState(baseName);
     const [preview, setPreview] = useState(null);
 
     useEffect(() => {
@@ -18,8 +24,9 @@ const FileItem = ({ file, index, onRemove, onRename }) => {
     }, [file]);
 
     const handleRename = () => {
-        if (newName.trim() && newName !== file.name) {
-            onRename(index, newName.trim());
+        const fullNewName = newName.trim() + extension;
+        if (newName.trim() && fullNewName !== file.name) {
+            onRename(index, fullNewName);
         }
         setIsEditing(false);
     };
@@ -27,7 +34,7 @@ const FileItem = ({ file, index, onRemove, onRename }) => {
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') handleRename();
         if (e.key === 'Escape') {
-            setNewName(file.name);
+            setNewName(baseName);
             setIsEditing(false);
         }
     };

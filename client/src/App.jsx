@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { socket, connectSocket, disconnectSocket } from './services/socket'
 import { QRCodeCanvas } from 'qrcode.react'
 import { copyToClipboard } from './utils/helpers'
@@ -23,11 +23,16 @@ function App() {
 
   const { history, addToHistory, clearHistory } = useHistory();
   const [showHistory, setShowHistory] = useState(false);
+  const roomIdRef = useRef(roomId);
+
+  useEffect(() => {
+    roomIdRef.current = roomId;
+  }, [roomId]);
 
   const {
     status, setStatus, progress, stats, receivedText,
     initWebRTC, sendFiles, sendText, destroy: destroyWebRTC
-  } = useWebRTC(addToHistory);
+  } = useWebRTC((items) => addToHistory(items, roomIdRef.current));
 
   const {
     files, setFiles, removeFile, renameFile, sharedText, setSharedText,
@@ -126,7 +131,7 @@ function App() {
         size: f.size,
         direction: 'sent',
         timestamp: Date.now()
-      })));
+      })), roomId);
     }).catch(err => {
       showToast('Failed to beam files.', 'error');
     });
@@ -140,7 +145,7 @@ function App() {
       name: sharedText.length > 20 ? sharedText.substring(0, 20) + '...' : sharedText,
       direction: 'sent',
       timestamp: Date.now()
-    }]);
+    }], roomId);
     setSharedText('');
   };
 
@@ -183,15 +188,15 @@ function App() {
                 startScanner={startScanner}
                 joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', { roomId, role: 'receiver' }); initWebRTC(roomId, false); }}
                 handleCopy={handleCopy}
-                history={history}
+                history={history.filter(item => item.roomId === roomId)}
               />
             )}
 
             {(progress > 0 || status) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)', marginTop: 'var(--s-4)' }}>
                 <div className={`status-bar ${status.toLowerCase().includes('successfully') || status.toLowerCase().includes('connected') || status.toLowerCase().includes('ready') ? 'success' :
-                    status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
-                      ''
+                  status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
+                    ''
                   }`}>
                   <span>{status}</span>
                   {progress > 0 && progress < 100 && <span>{Math.round(progress)}% • {stats.speed}</span>}

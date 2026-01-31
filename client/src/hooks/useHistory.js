@@ -17,10 +17,11 @@ export const useHistory = () => {
         }
     }, []);
 
-    const addToHistory = useCallback((items) => {
-        // Each item: { type, name, size, direction, timestamp }
+    const addToHistory = useCallback((items, roomId) => {
+        // Each item: { type, name, size, direction, timestamp, roomId }
         setHistory(prev => {
-            const newHistory = [...items, ...prev].slice(0, MAX_HISTORY_ITEMS);
+            const itemsWithRoom = items.map(item => ({ ...item, roomId }));
+            const newHistory = [...itemsWithRoom, ...prev].slice(0, MAX_HISTORY_ITEMS);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
             return newHistory;
         });
