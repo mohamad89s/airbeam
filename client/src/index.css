@@ -65,6 +65,20 @@ body {
   flex-direction: column;
 }
 
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktop-only {
+    display: block;
+  }
+
+  .mobile-only {
+    display: none;
+  }
+}
+
 h1,
 h2,
 h3,
@@ -110,6 +124,47 @@ main.container {
   max-width: 440px;
   margin: 0 auto;
   overflow: hidden;
+  transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+  main.container {
+    max-width: 1000px;
+  }
+
+  .desktop-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--s-6);
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .sidebar-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+    height: 100%;
+  }
+
+  .main-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+    height: 100%;
+    overflow-y: auto;
+    padding-right: var(--s-2);
+  }
+
+  /* Custom scrollbar for main panel */
+  .main-panel::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .main-panel::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 10px;
+  }
 }
 
 /* Base Card Styles */
@@ -313,7 +368,7 @@ main.container {
 .drop-zone:hover {
   border-color: var(--primary);
   background: var(--primary-soft);
-  transform: translateY(-2px);
+  transform: scale(0.995);
 }
 
 .text-area {
@@ -478,11 +533,24 @@ main.container {
 }
 
 /* Mode Selection (Home) */
-.home-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-4);
-  width: 100%;
+@media (min-width: 768px) {
+  .home-grid {
+    gap: var(--s-8);
+  }
+
+  .mode-card {
+    padding: var(--s-12) var(--s-8);
+  }
+
+  .mode-card .icon-wrap {
+    width: 80px;
+    height: 80px;
+  }
+
+  .mode-card .icon-wrap svg {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .mode-card {
@@ -794,6 +862,12 @@ footer {
   display: flex;
   flex-direction: column;
   max-height: 80vh;
+}
+
+@media (min-width: 768px) {
+  .modal-content {
+    max-width: 600px;
+  }
 }
 
 .history-list {

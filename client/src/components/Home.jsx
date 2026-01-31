@@ -3,12 +3,15 @@ import { Send, Download } from 'lucide-react';
 
 const Home = ({ onModeSelect }) => {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-8)', paddingTop: 'var(--s-8)' }}>
-            <div style={{ textAlign: 'center' }}>
-                <h1 style={{ fontSize: '2.5rem', marginBottom: 'var(--s-2)', color: 'var(--text-main)', letterSpacing: '-0.03em' }}>
+        <div className="home-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-8)', paddingTop: 'var(--s-8)', alignItems: 'center' }}>
+            <div style={{ textAlign: 'center', maxWidth: '600px' }}>
+                <h1 className="hero-title" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: 'var(--s-4)', color: 'var(--text-main)', letterSpacing: '-0.04em', lineHeight: 1.1, fontWeight: 800 }}>
                     Beam files <br /> instantly.
                 </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Private local peer-to-peer sharing.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(1rem, 1.2vw, 1.25rem)', fontWeight: 500, lineHeight: 1.6 }}>
+                    Private local peer-to-peer sharing. <br className="desktop-only" />
+                    No clouds, no limits, just pure speed.
+                </p>
             </div>
             <div className="home-grid">
                 <div className="mode-card" onClick={() => onModeSelect('sender')}>

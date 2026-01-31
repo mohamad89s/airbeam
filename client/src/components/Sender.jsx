@@ -108,79 +108,90 @@ const Sender = ({
                 </div>
             </div>
 
-            <div className="connection-section">
-                <div className="sender-room-info">
-                    <div className="room-display" style={{ marginBottom: 'var(--s-2)' }}>
-                        <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
+            <div className="desktop-layout">
+                <div className="sidebar-panel">
+                    <div className="connection-section">
+                        <div className="sender-room-info">
+                            <div className="room-display" style={{ marginBottom: 'var(--s-2)' }}>
+                                <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
+                            </div>
+                            <button
+                                className="btn-secondary"
+                                onClick={() => handleCopy(roomId)}
+                                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                            >
+                                {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
+                                <span>{copied ? 'Copied' : 'Copy Code'}</span>
+                            </button>
+                        </div>
+                        <div className="qr-mini">
+                            <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
+                        </div>
+                        <div style={{ textAlign: 'center', marginTop: 'var(--s-2)', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                            Ask receiver to scan this QR <br /> or enter the 6-digit code.
+                        </div>
                     </div>
-                    <button
-                        className="btn-secondary"
-                        onClick={() => handleCopy(roomId)}
-                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                    >
-                        {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
-                        <span>{copied ? 'Copied' : 'Copy Code'}</span>
-                    </button>
                 </div>
-                <div className="qr-mini">
-                    <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
-                </div>
-            </div>
 
-            {transferType === 'file' ? (
-                <>
-                    <div
-                        className={`drop-zone ${isDragging ? 'dragging' : ''}`}
-                        onClick={() => fileInputRef.current?.click()}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        style={{ minHeight: files.length > 0 ? '120px' : '240px' }}
-                    >
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            style={{ display: 'none' }}
-                            onChange={onFileInputChange}
-                            onClick={e => e.stopPropagation()}
-                        />
-                        <div className="icon-wrap" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-soft)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <FileText size={24} />
+                <div className="main-panel">
+                    {transferType === 'file' ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-4)', height: '100%' }}>
+                            <div
+                                className={`drop-zone ${isDragging ? 'dragging' : ''}`}
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                style={{ minHeight: files.length > 0 ? '120px' : '200px' }}
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    multiple
+                                    style={{ display: 'none' }}
+                                    onChange={onFileInputChange}
+                                    onClick={e => e.stopPropagation()}
+                                />
+                                <div className="icon-wrap" style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary-soft)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <FileText size={24} />
+                                </div>
+                                <div style={{ textAlign: 'center' }}>
+                                    <p style={{ fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
+                                        {files.length > 0 ? 'Add more files' : 'Choose files'}
+                                    </p>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                        {isDragging ? "Drop them here!" : "Tap to browse or drag & drop"}
+                                    </p>
+                                </div>
+                            </div>
+                            {files.length > 0 && (
+                                <FileList
+                                    files={files}
+                                    onRemove={removeFile}
+                                    onRename={renameFile}
+                                />
+                            )}
                         </div>
-                        <div style={{ textAlign: 'center' }}>
-                            <p style={{ fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
-                                {files.length > 0 ? 'Add more files' : 'Choose files'}
-                            </p>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                {isDragging ? "Drop them here!" : "Tap to browse or drag & drop"}
-                            </p>
-                        </div>
-                    </div>
-                    {files.length > 0 && (
-                        <FileList
-                            files={files}
-                            onRemove={removeFile}
-                            onRename={renameFile}
+                    ) : (
+                        <textarea
+                            className="text-area"
+                            placeholder="Enter text or paste links..."
+                            value={sharedText}
+                            onChange={(e) => setSharedText(e.target.value)}
+                            style={{ flex: 1, minHeight: '200px' }}
                         />
                     )}
-                </>
-            ) : (
-                <textarea
-                    className="text-area"
-                    placeholder="Enter text or paste links..."
-                    value={sharedText}
-                    onChange={(e) => setSharedText(e.target.value)}
-                />
-            )}
 
-            <button
-                className="btn-primary"
-                onClick={transferType === 'file' ? sendFiles : sendText}
-                disabled={transferType === 'file' ? files.length === 0 : !sharedText.trim()}
-            >
-                <Zap size={18} fill="currentColor" /> {transferType === 'file' ? 'Beam Files' : 'Beam Text'}
-            </button>
+                    <button
+                        className="btn-primary"
+                        onClick={transferType === 'file' ? sendFiles : sendText}
+                        disabled={transferType === 'file' ? files.length === 0 : !sharedText.trim()}
+                        style={{ marginTop: 'auto' }}
+                    >
+                        <Zap size={18} fill="currentColor" /> {transferType === 'file' ? 'Beam Files' : 'Beam Text'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
