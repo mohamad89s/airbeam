@@ -139,12 +139,15 @@ export const useWebRTC = (onReceived) => {
         }
     }, []);
 
-    const initWebRTC = useCallback((room, isInitiator) => {
+    const initWebRTC = useCallback((room, isInitiator, onConnectionStateChange) => {
         if (rtcManager.current) rtcManager.current.destroy();
         rtcManager.current = new WebRTCManager(
             socket, isInitiator,
             (data) => handleDataReceived(data),
-            (state) => handleConnectionState(state),
+            (state) => {
+                handleConnectionState(state);
+                if (onConnectionStateChange) onConnectionStateChange(state);
+            },
             () => {
                 if (bufferResolveRef.current) {
                     bufferResolveRef.current();

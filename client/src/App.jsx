@@ -21,6 +21,7 @@ function App() {
   const [roomId, setRoomId] = useState(() => sessionStorage.getItem('airbeam_roomId') || '');
   const [showScanner, setShowScanner] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [p2pConnectionState, setP2pConnectionState] = useState('');
 
   const { history, addToHistory, clearHistory } = useHistory();
   const [showHistory, setShowHistory] = useState(false);
@@ -59,7 +60,7 @@ function App() {
       setRoomId(newRoomId);
       socket.emit('join-room', { roomId: newRoomId, role: 'sender' });
       setStatus('Waiting for receiver');
-      initWebRTC(newRoomId, true);
+      initWebRTC(newRoomId, true, setP2pConnectionState);
     } else {
       setRoomId('');
       setStatus('');
@@ -95,7 +96,7 @@ function App() {
     setMode('receiver');
     setStatus('Connecting...');
     socket.emit('join-room', { roomId: room, role: 'receiver' });
-    initWebRTC(room, false);
+    initWebRTC(room, false, setP2pConnectionState);
     setShowScanner(false);
   }, [initWebRTC, setStatus]);
 
@@ -178,7 +179,7 @@ function App() {
     if (isSocketConnected && mode !== 'home' && roomId) {
       console.log('Re-syncing room state');
       socket.emit('join-room', { roomId, role: mode === 'sender' ? 'sender' : 'receiver' });
-      initWebRTC(roomId, mode === 'sender');
+      initWebRTC(roomId, mode === 'sender', setP2pConnectionState);
     }
   }, [isSocketConnected]);
 
@@ -191,7 +192,7 @@ function App() {
       setTimeout(() => {
         socket.emit('join-room', { roomId: room, role: 'receiver' });
         setStatus('Joining...');
-        initWebRTC(room, false);
+        initWebRTC(room, false, setP2pConnectionState);
       }, 500);
     }
   }, []);
@@ -236,7 +237,7 @@ function App() {
                 roomId={roomId}
                 setRoomId={setRoomId}
                 startScanner={() => setShowScanner(true)}
-                joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', { roomId, role: 'receiver' }); initWebRTC(roomId, false); }}
+                joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', { roomId, role: 'receiver' }); initWebRTC(roomId, false, setP2pConnectionState); }}
                 handleCopy={handleCopy}
                 history={history.filter(item => item.roomId === roomId)}
               />
@@ -248,7 +249,7 @@ function App() {
                   status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
                     isPaused ? 'paused' : ''
                   }`}>
-                  <span>{status}</span>
+                  <span>{p2pConnectionState === 'connected' ? (status === 'Waiting for receiver' ? 'Ready to beam' : status) : status}</span>
                   {progress > 0 && progress < 100 && (
                     <span>{Math.round(progress)}% • {stats.speed} {stats.eta && stats.eta !== '0s' && `• ${stats.eta} left`}</span>
                   )}

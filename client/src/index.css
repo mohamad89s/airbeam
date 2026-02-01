@@ -530,20 +530,20 @@ main.container {
 
 .toast-success {
   border-color: var(--success);
-  color: var(--success);
-  background: var(--success-soft);
+  color: white;
+  background: var(--success);
 }
 
 .toast-error {
   border-color: var(--error);
-  color: var(--error);
-  background: var(--error-soft);
+  color: white;
+  background: var(--error);
 }
 
 .toast-info {
   border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-soft);
+  color: white;
+  background: var(--primary);
 }
 
 .toast-message {
@@ -553,16 +553,24 @@ main.container {
 }
 
 .toast-close {
-  padding: 4px;
-  border-radius: 4px;
-  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  color: white;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.8;
+  transition: all 0.2s;
 }
 
 .toast-close:hover {
   opacity: 1;
-  background: var(--hover-bg);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 @keyframes slideUp {
