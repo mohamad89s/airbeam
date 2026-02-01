@@ -1,8 +1,9 @@
 export class WebRTCManager {
-    constructor(socket, isInitiator, onData, onStatusChange) {
+    constructor(socket, isInitiator, onData, onStatusChange, onBufferedAmountLow) {
         this.socket = socket;
         this.onData = onData;
         this.onStatusChange = onStatusChange; // 'connecting', 'connected', 'disconnected'
+        this.onBufferedAmountLow = onBufferedAmountLow;
         this.peerConnection = null;
         this.dataChannel = null;
         this.remotePeerId = null;
@@ -131,6 +132,23 @@ export class WebRTCManager {
         this.dataChannel.onmessage = (event) => {
             this.onData(event.data);
         };
+
+        this.dataChannel.onerror = (error) => {
+            console.error('Data channel error:', error);
+            this.onStatusChange('error');
+        };
+
+        this.dataChannel.onclosing = () => {
+            console.warn('Data channel is closing...');
+            this.onStatusChange('closing');
+        };
+
+        this.dataChannel.onbufferedamountlow = () => {
+            if (this.onBufferedAmountLow) this.onBufferedAmountLow();
+        };
+
+        // Set threshold to 256KB to ensure the pipe stays full but doesn't overflow
+        this.dataChannel.bufferedAmountLowThreshold = 256 * 1024;
     }
 
     async createOffer(iceRestart = false) {

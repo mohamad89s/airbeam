@@ -438,6 +438,14 @@ main.container {
   margin-bottom: var(--s-4);
 }
 
+@media (min-width: 768px) {
+  .sender-room-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+  }
+}
+
 .drop-zone.dragging {
   background: var(--primary-soft);
   border-color: var(--primary);

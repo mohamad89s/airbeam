@@ -15,6 +15,7 @@ export const useWebRTC = (onReceived) => {
     const receivedSize = useRef(0);
     const startTime = useRef(0);
     const wakeLock = useRef(null);
+    const bufferResolveRef = useRef(null);
 
     const requestWakeLock = async () => {
         if ('wakeLock' in navigator) {
@@ -44,7 +45,14 @@ export const useWebRTC = (onReceived) => {
                     receivedSize.current = 0;
                     startTime.current = Date.now();
                     setReceivedText(''); // Clear previous text to show file progress
-                    setStatus(`Receiving ${parsed.name}`);
+
+                    // MEMORY SHIELD: Warn if file is > 1GB
+                    if (parsed.size > 1024 * 1024 * 1024) {
+                        setStatus(`Warning: ${parsed.name} is very large. Memory may be limited.`);
+                    } else {
+                        setStatus(`Receiving ${parsed.name}`);
+                    }
+
                     setProgress(0);
                     requestWakeLock();
                 } else if (parsed.type === 'text') {
@@ -104,7 +112,13 @@ export const useWebRTC = (onReceived) => {
         rtcManager.current = new WebRTCManager(
             socket, isInitiator,
             (data) => handleDataReceived(data),
-            (state) => handleConnectionState(state)
+            (state) => handleConnectionState(state),
+            () => {
+                if (bufferResolveRef.current) {
+                    bufferResolveRef.current();
+                    bufferResolveRef.current = null;
+                }
+            }
         );
         if (!isInitiator) rtcManager.current.initializePeer(null, false);
     }, [handleDataReceived, handleConnectionState]);
@@ -121,11 +135,13 @@ export const useWebRTC = (onReceived) => {
             const file = files[i];
             startTime.current = Date.now();
             rtcManager.current.sendData(JSON.stringify({ type: 'metadata', name: file.name, size: file.size }));
-            const CHUNK_SIZE = 16384 * 4;
+            const CHUNK_SIZE = 16384 * 16; // 256KB chunks for better speed
             let offset = 0;
             while (offset < file.size) {
                 if (rtcManager.current.getBufferedAmount() > 1024 * 1024) {
-                    await new Promise(r => setTimeout(r, 50));
+                    await new Promise(resolve => {
+                        bufferResolveRef.current = resolve;
+                    });
                     continue;
                 }
                 const chunk = await file.slice(offset, offset + CHUNK_SIZE).arrayBuffer();
