@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { socket, connectSocket, disconnectSocket } from './services/socket'
 import { QRCodeCanvas } from 'qrcode.react'
 import { copyToClipboard } from './utils/helpers'
@@ -17,23 +17,34 @@ import HistoryModal from './components/HistoryModal'
 import './index.css'
 
 function App() {
-  const [mode, setMode] = useState('home'); // home, sender, receiver
-  const [roomId, setRoomId] = useState('');
+  const [mode, setMode] = useState(() => sessionStorage.getItem('airbeam_mode') || 'home');
+  const [roomId, setRoomId] = useState(() => sessionStorage.getItem('airbeam_roomId') || '');
   const [showScanner, setShowScanner] = useState(false);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   const { history, addToHistory, clearHistory } = useHistory();
   const [showHistory, setShowHistory] = useState(false);
   const roomIdRef = useRef(roomId);
+  const joinRetryCount = useRef(0);
 
   useEffect(() => {
     roomIdRef.current = roomId;
+    if (roomId) sessionStorage.setItem('airbeam_roomId', roomId);
+    else sessionStorage.removeItem('airbeam_roomId');
   }, [roomId]);
 
-  const {
-    status, setStatus, progress, stats, receivedText,
-    initWebRTC, sendFiles, sendText, isPaused, togglePause, cancelTransfer, destroy: destroyWebRTC
-  } = useWebRTC((items) => addToHistory(items, roomIdRef.current));
+  useEffect(() => {
+    if (mode) sessionStorage.setItem('airbeam_mode', mode);
+  }, [mode]);
 
+  const handleReceived = useCallback((items) => {
+    addToHistory(items, roomIdRef.current);
+  }, [addToHistory]);
+
+  const {
+    status, setStatus, progress, setProgress, stats, setStats, receivedText, setReceivedText,
+    initWebRTC, sendFiles, sendText, isPaused, togglePause, cancelTransfer, destroy: destroyWebRTC
+  } = useWebRTC(handleReceived);
   const {
     files, setFiles, removeFile, renameFile, sharedText, setSharedText,
     transferType, setTransferType, copied, setCopied, resetTransfer
@@ -41,37 +52,7 @@ function App() {
 
   const { toast, showToast, hideToast } = useToast();
 
-  useEffect(() => {
-    connectSocket();
-    socket.on('error', (msg) => {
-      showToast(msg, 'error');
-      setStatus('');
-      if (msg.includes('Room not found') || msg.includes('full')) {
-        setRoomId('');
-        setMode('receiver'); // Ensure we stay on receiver screen but reset
-      }
-    });
-    return () => {
-      socket.off('error');
-      disconnectSocket();
-    };
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const room = params.get('room');
-    if (room && room.length === 6 && mode !== 'receiver') {
-      setRoomId(room);
-      setMode('receiver');
-      setTimeout(() => {
-        socket.emit('join-room', { roomId: room, role: 'receiver' });
-        setStatus('Joining via link...');
-        initWebRTC(room, false);
-      }, 500);
-    }
-  }, []);
-
-  const handleModeSelect = (selectedMode) => {
+  const handleModeSelect = useCallback((selectedMode) => {
     setMode(selectedMode);
     if (selectedMode === 'sender') {
       const newRoomId = Math.floor(100000 + Math.random() * 900000).toString();
@@ -83,45 +64,42 @@ function App() {
       setRoomId('');
       setStatus('');
     }
-  };
+  }, [initWebRTC, setStatus, setRoomId]);
 
-  const goHome = () => {
-    if (roomId) socket.emit('leave-room', roomId);
+  const goHome = useCallback(() => {
+    if (roomIdRef.current) socket.emit('leave-room', roomIdRef.current);
     setMode('home');
     setRoomId('');
+    sessionStorage.removeItem('airbeam_mode');
+    sessionStorage.removeItem('airbeam_roomId');
     resetTransfer();
     destroyWebRTC();
-  };
+  }, [resetTransfer, destroyWebRTC]);
 
-  const handleCopy = (text) => {
+  const handleCopy = useCallback((text) => {
     copyToClipboard(text).then(() => {
       setCopied(true);
       showToast('Copied to clipboard!', 'success');
       setTimeout(() => setCopied(false), 2000);
     });
-  };
+  }, [setCopied, showToast]);
 
-  const startScanner = () => {
-    setShowScanner(true);
-  };
-
-  const handleScan = (text) => {
+  const handleScan = useCallback((text) => {
     let room = text;
     try {
       const url = new URL(text);
       const roomParam = url.searchParams.get('room');
       if (roomParam) room = roomParam;
-    } catch (e) {
-      // Not a URL, use as is
-    }
-
+    } catch (e) { }
     setRoomId(room);
+    setMode('receiver');
     setStatus('Connecting...');
     socket.emit('join-room', { roomId: room, role: 'receiver' });
     initWebRTC(room, false);
-  };
+    setShowScanner(false);
+  }, [initWebRTC, setStatus]);
 
-  const handleSendFiles = () => {
+  const handleSendFiles = useCallback(() => {
     sendFiles(files).then(() => {
       showToast('Files beamed successfully!', 'success');
       addToHistory(files.map(f => ({
@@ -134,9 +112,9 @@ function App() {
     }).catch(err => {
       showToast(err.message || 'Failed to beam files.', 'error');
     });
-  };
+  }, [files, sendFiles, showToast, addToHistory]);
 
-  const handleSendText = () => {
+  const handleSendText = useCallback(() => {
     try {
       sendText(sharedText);
       showToast('Text beamed!', 'success');
@@ -150,12 +128,77 @@ function App() {
     } catch (err) {
       showToast(err.message || 'Failed to beam text.', 'error');
     }
-  };
+  }, [sharedText, sendText, showToast, addToHistory, setSharedText]);
+
+  useEffect(() => {
+    connectSocket();
+
+    const onConnect = () => {
+      console.log('Socket connected');
+      setIsSocketConnected(true);
+      joinRetryCount.current = 0;
+    };
+    const onDisconnect = () => setIsSocketConnected(false);
+    const onError = (msg) => {
+      if ((msg.includes('full') || msg.includes('not found')) && joinRetryCount.current < 2) {
+        joinRetryCount.current++;
+        setStatus(msg.includes('full') ? 'Room busy, retrying...' : 'Finding room...');
+        setTimeout(() => {
+          if (roomIdRef.current && mode !== 'home') {
+            const role = mode === 'sender' ? 'sender' : 'receiver';
+            socket.emit('join-room', { roomId: roomIdRef.current, role });
+          }
+        }, 1500);
+        return;
+      }
+      showToast(msg, 'error');
+      setStatus('');
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('error', onError);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !socket.connected) {
+        connectSocket();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('error', onError);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [showToast, setStatus, mode]);
+
+  useEffect(() => {
+    if (isSocketConnected && mode !== 'home' && roomId) {
+      console.log('Re-syncing room state');
+      socket.emit('join-room', { roomId, role: mode === 'sender' ? 'sender' : 'receiver' });
+      initWebRTC(roomId, mode === 'sender');
+    }
+  }, [isSocketConnected]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const room = params.get('room');
+    if (room && room.length === 6 && mode !== 'receiver') {
+      setRoomId(room);
+      setMode('receiver');
+      setTimeout(() => {
+        socket.emit('join-room', { roomId: room, role: 'receiver' });
+        setStatus('Joining...');
+        initWebRTC(room, false);
+      }, 500);
+    }
+  }, []);
 
   return (
     <>
       <Navbar onLogoClick={goHome} onHistoryClick={() => setShowHistory(true)} />
-
       <main className="container">
         {mode === 'home' ? (
           <Home onModeSelect={handleModeSelect} />
@@ -192,7 +235,7 @@ function App() {
                 status={status}
                 roomId={roomId}
                 setRoomId={setRoomId}
-                startScanner={startScanner}
+                startScanner={() => setShowScanner(true)}
                 joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', { roomId, role: 'receiver' }); initWebRTC(roomId, false); }}
                 handleCopy={handleCopy}
                 history={history.filter(item => item.roomId === roomId)}
@@ -201,15 +244,13 @@ function App() {
 
             {(progress > 0 || status) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)', marginTop: 'var(--s-4)' }}>
-                <div className={`status-bar ${status.toLowerCase().includes('successfully') || status.toLowerCase().includes('connected') || status.toLowerCase().includes('ready') ? 'success' :
+                <div className={`status-bar ${status.toLowerCase().includes('successfully') || status.toLowerCase().includes('connected') ? 'success' :
                   status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
                     isPaused ? 'paused' : ''
                   }`}>
                   <span>{status}</span>
                   {progress > 0 && progress < 100 && (
-                    <span>
-                      {Math.round(progress)}% • {stats.speed} {stats.eta && stats.eta !== '0s' && `• ${stats.eta} left`}
-                    </span>
+                    <span>{Math.round(progress)}% • {stats.speed} {stats.eta && stats.eta !== '0s' && `• ${stats.eta} left`}</span>
                   )}
                 </div>
                 {progress > 0 && (
@@ -221,31 +262,13 @@ function App() {
             )}
           </>
         )}
-
-        {showScanner && (
-          <Scanner
-            onScan={handleScan}
-            onClose={() => setShowScanner(false)}
-          />
-        )}
-
-        {toast && (
-          <div className="toast-container">
-            <Toast {...toast} onClose={hideToast} />
-          </div>
-        )}
-
-        <HistoryModal
-          isOpen={showHistory}
-          onClose={() => setShowHistory(false)}
-          history={history}
-          onClear={clearHistory}
-        />
+        {showScanner && <Scanner onScan={handleScan} onClose={() => setShowScanner(false)} />}
+        {toast && <div className="toast-container"><Toast {...toast} onClose={hideToast} /></div>}
+        <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} history={history} onClear={clearHistory} />
       </main>
-
       <Footer />
     </>
-  )
+  );
 }
 
 export default App

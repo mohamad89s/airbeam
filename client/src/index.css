@@ -9,6 +9,8 @@
   --success-soft: rgba(0, 200, 83, 0.08);
   --error: #ef4444;
   --error-soft: rgba(239, 68, 68, 0.08);
+  --warning: #f97316;
+  --warning-soft: rgba(249, 115, 22, 0.08);
 
   --bg-main: #f4f7fa;
   --bg-card: #ffffff;
@@ -739,8 +741,8 @@ main.container {
 }
 
 .status-bar.paused {
-  color: #64748b;
-  background: #f1f5f9;
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 .btn-primary.paused {

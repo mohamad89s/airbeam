@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Camera, ShieldCheck, Copy, Clock, Send, Download, FileText, Type } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Camera, ShieldCheck, Copy, Clock, Send, Download, FileText, Type, Pause } from 'lucide-react';
 import { formatBytes } from '../utils/helpers';
 
 const Receiver = ({
@@ -13,7 +13,8 @@ const Receiver = ({
     history
 }) => {
     const isSuccess = status.includes('successfully');
-    const isConnected = receivedText || status.includes('Connected') || status.includes('Receiving') || isSuccess;
+    const isPaused = status.toLowerCase().includes('paused');
+    const isConnected = receivedText || status.includes('Connected') || status.includes('Receiving') || isSuccess || isPaused;
 
     return (
         <div className="card">
@@ -75,6 +76,19 @@ const Receiver = ({
                                     <button className="btn-secondary" onClick={() => handleCopy(receivedText)} style={{ marginTop: 'var(--s-2)', width: 'auto' }}>
                                         <Copy size={14} /> Copy to Clipboard
                                     </button>
+                                </div>
+                            ) : isPaused ? (
+                                <div style={{ textAlign: 'center', padding: 'var(--s-4) 0' }}>
+                                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                                        <Download size={64} color="var(--primary)" style={{ opacity: 0.3 }} />
+                                        <Pause size={32} color="var(--warning)" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+                                    </div>
+                                    <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: 'var(--warning)' }}>
+                                        Transfer Paused by Sender
+                                    </p>
+                                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                        Waiting for sender to resume...
+                                    </p>
                                 </div>
                             ) : (
                                 <div style={{ textAlign: 'center', padding: 'var(--s-4) 0' }}>

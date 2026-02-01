@@ -78,10 +78,9 @@ io.on('connection', (socket) => {
     const clients = io.sockets.adapter.rooms.get(roomId);
     const numClients = clients ? clients.size : 0;
 
-    // Logic: Receivers cannot create rooms, they must join existing ones.
+    // Logic: Allow receivers to join empty rooms so they can wait for a sender (helpful for iOS backgrounding).
     if (role === 'receiver' && numClients === 0) {
-      socket.emit('error', 'Room not found. Ask sender for code.');
-      return;
+      console.log(`ℹ️ Receiver ${socket.id} waiting for Sender in empty room ${roomId}`);
     }
 
     // SECURITY: Room Locking
@@ -93,10 +92,17 @@ io.on('connection', (socket) => {
 
     socket.join(roomId);
     console.log(`User ${socket.id} joined room ${roomId} as ${role}`);
-    console.log(`Room ${roomId} now has ${numClients + 1} users`);
 
     // Notify others in the room
     socket.to(roomId).emit('user-joined', socket.id);
+
+    // Also notify the person who JUST joined about who is already there
+    if (clients && clients.size > 0) {
+      const existingPeers = Array.from(clients).filter(id => id !== socket.id);
+      if (existingPeers.length > 0) {
+        socket.emit('existing-peers', existingPeers);
+      }
+    }
   });
 
   socket.on('leave-room', (roomId) => {
@@ -131,6 +137,16 @@ io.on('connection', (socket) => {
       candidate: payload.candidate,
       sender: socket.id
     });
+  });
+
+  socket.on('disconnecting', () => {
+    console.log('User disconnecting:', socket.id);
+    // Notify others in all rooms this user was in
+    for (const room of socket.rooms) {
+      if (room !== socket.id) {
+        socket.to(room).emit('user-left', socket.id);
+      }
+    }
   });
 
   socket.on('disconnect', () => {

@@ -23,6 +23,10 @@ export class WebRTCManager {
         this.boundHandleCandidate = (payload) => this.handleCandidate(payload.candidate);
         this.boundUserJoined = (userId) => this.handleUserJoined(userId);
         this.boundUserLeft = (userId) => this.handleUserLeft(userId);
+        this.boundHandleExistingPeers = (peers) => {
+            console.log('Existing peers found:', peers);
+            peers.forEach(peerId => this.handleUserJoined(peerId));
+        };
 
         this.setupSocketListeners();
     }
@@ -33,6 +37,7 @@ export class WebRTCManager {
         this.socket.on('ice-candidate', this.boundHandleCandidate);
         this.socket.on('user-joined', this.boundUserJoined);
         this.socket.on('user-left', this.boundUserLeft);
+        this.socket.on('existing-peers', this.boundHandleExistingPeers);
     }
 
     removeSocketListeners() {
@@ -41,6 +46,7 @@ export class WebRTCManager {
         this.socket.off('ice-candidate', this.boundHandleCandidate);
         this.socket.off('user-joined', this.boundUserJoined);
         this.socket.off('user-left', this.boundUserLeft);
+        this.socket.off('existing-peers', this.boundHandleExistingPeers);
     }
 
     initializePeer(remotePeerId, isInitiator) {

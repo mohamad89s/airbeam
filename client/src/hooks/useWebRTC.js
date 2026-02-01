@@ -72,11 +72,17 @@ export const useWebRTC = (onReceived) => {
                     setProgress(0);
                     requestWakeLock();
                 } else if (parsed.type === 'control') {
-                    if (parsed.action === 'pause') setStatus('Paused by sender');
-                    else if (parsed.action === 'resume') setStatus(`Receiving ${metadataRef.current?.name || ''}`);
+                    if (parsed.action === 'pause') {
+                        setStatus('Paused by sender');
+                        setIsPaused(true);
+                    } else if (parsed.action === 'resume') {
+                        setStatus(`Receiving ${metadataRef.current?.name || ''}`);
+                        setIsPaused(false);
+                    }
                     else if (parsed.action === 'cancel') {
                         setStatus('Transfer cancelled by sender');
                         setProgress(0);
+                        setIsPaused(false);
                         releaseWakeLock();
                     }
                 } else if (parsed.type === 'heartbeat') {
