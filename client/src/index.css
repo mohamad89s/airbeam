@@ -73,6 +73,7 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4);
+  --room-code: #ffffff;
 }
 
 * {
@@ -102,16 +103,16 @@ body {
 }
 
 .desktop-only {
-  display: none;
+  display: none !important;
 }
 
 @media (min-width: 768px) {
   .desktop-only {
-    display: block;
+    display: block !important;
   }
 
   .mobile-only {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -174,7 +175,7 @@ main.container {
   max-width: 440px;
   margin: 0 auto;
   overflow: hidden;
-  transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: max-width 0.4s ease-out;
 }
 
 @media (min-width: 768px) {
@@ -266,7 +267,7 @@ main.container {
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
-  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUp 0.5s ease-out;
   height: 100%;
   max-height: 100%;
   overflow-y: auto;
@@ -361,7 +362,7 @@ main.container {
   font-weight: 800;
   text-align: center;
   letter-spacing: 0.05em;
-  color: var(--primary);
+  color: var(--room-code, var(--primary));
 }
 
 .room-display input:focus {
@@ -502,10 +503,12 @@ main.container {
   transform: scale(1.02);
 }
 
-.drop-zone:hover {
-  border-color: var(--primary);
-  background: var(--primary-soft);
-  transform: scale(0.995);
+@media (hover: hover) {
+  .drop-zone:hover {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    transform: scale(0.995);
+  }
 }
 
 .text-area {
@@ -654,6 +657,7 @@ main.container {
   border: none;
   padding: var(--s-4);
   border-radius: var(--radius-lg);
+  font-family: inherit;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
@@ -664,10 +668,12 @@ main.container {
   transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -6px rgba(0, 98, 255, 0.4);
+@media (hover: hover) {
+  .btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -6px rgba(0, 98, 255, 0.4);
+  }
 }
 
 .btn-primary:active {
@@ -749,15 +755,17 @@ main.container {
   align-items: center;
   gap: var(--s-4);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease-out;
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-lg);
 }
 
-.mode-card:hover {
-  transform: translateY(-8px);
-  border-color: var(--primary);
-  box-shadow: var(--shadow-xl);
+@media (hover: hover) {
+  .mode-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-xl);
+  }
 }
 
 .mode-card .icon-wrap {
@@ -772,10 +780,12 @@ main.container {
   transition: all 0.3s ease;
 }
 
-.mode-card:hover .icon-wrap {
-  background: var(--primary);
-  color: white;
-  transform: rotate(-5deg);
+@media (hover: hover) {
+  .mode-card:hover .icon-wrap {
+    background: var(--primary);
+    color: white;
+    transform: rotate(-5deg);
+  }
 }
 
 /* Progress & Status */
@@ -833,12 +843,12 @@ main.container {
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(20px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -1011,7 +1021,7 @@ footer {
   position: relative;
   cursor: pointer;
   outline: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease-out;
 }
 
 .toggle-switch::after {
@@ -1024,7 +1034,7 @@ footer {
   border-radius: 50%;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease-out;
 }
 
 .toggle-switch:checked {
@@ -1059,7 +1069,7 @@ footer {
   padding: var(--s-5);
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--border-subtle);
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUp 0.3s ease-out;
   display: flex;
   flex-direction: column;
   max-height: 80vh;
@@ -1124,6 +1134,18 @@ footer {
 [dir='rtl'] .icon-btn.lang-toggle svg,
 [dir='rtl'] .icon-btn-small svg {
   transform: none;
+}
+
+[dir='rtl'] .mode-card .icon-wrap svg {
+  transform: scaleX(-1);
+}
+
+.theme-toggle {
+  transition: none !important;
+}
+
+.theme-toggle svg {
+  transition: none !important;
 }
 
 .history-name {

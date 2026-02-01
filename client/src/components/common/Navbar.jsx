@@ -20,14 +20,14 @@ const Navbar = ({ onLogoClick, onHistoryClick, theme, toggleTheme, language, tog
                     className="icon-btn"
                     onClick={toggleLanguage}
                     title={t('language')}
-                    style={{ fontWeight: 800, fontSize: '0.75rem', padding: '8px' }}
+                    style={{ fontWeight: 800, fontSize: '0.9rem', padding: '8px' }}
                 >
                     {language === 'en' ? 'FA' : 'EN'}
                 </button>
                 <button className="icon-btn" onClick={onHistoryClick} title={t('history')} style={{ padding: '8px' }}>
                     <Clock size={20} />
                 </button>
-                <div className="success-badge">
+                <div className="success-badge desktop-only">
                     <Wifi size={14} /> {t('p2p_ready')}
                 </div>
             </div>

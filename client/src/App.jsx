@@ -141,7 +141,7 @@ function App() {
         timestamp: Date.now()
       })), roomIdRef.current);
     }).catch(err => {
-      showToast(err.message || t('failed_beam_files'), 'error');
+      showToast(t(err.message) || t('failed_beam_files'), 'error');
     });
   }, [files, sendFiles, showToast, addToHistory]);
 
@@ -158,7 +158,7 @@ function App() {
       }], roomIdRef.current);
       setSharedText('');
     } catch (err) {
-      showToast(err.message || t('failed_beam_text'), 'error');
+      showToast(t(err.message) || t('failed_beam_text'), 'error');
     }
   }, [sharedText, sendText, showToast, addToHistory, setSharedText]);
 
@@ -174,7 +174,7 @@ function App() {
     const onError = (msg) => {
       if ((msg.includes('full') || msg.includes('not found')) && joinRetryCount.current < 2) {
         joinRetryCount.current++;
-        setStatus(msg.includes('full') ? t('room_busy_retry') : t('finding_room'));
+        setStatus(msg.includes('full') ? 'Room busy, retrying...' : 'Finding room...');
         setTimeout(() => {
           if (roomIdRef.current && mode !== 'home') {
             const role = mode === 'sender' ? 'sender' : 'receiver';
@@ -183,7 +183,7 @@ function App() {
         }, 1500);
         return;
       }
-      showToast(msg, 'error');
+      showToast(t(msg), 'error');
       setStatus('');
     };
 
@@ -222,7 +222,7 @@ function App() {
       setMode('receiver');
       setTimeout(() => {
         socket.emit('join-room', { roomId: room, role: 'receiver' });
-        setStatus(t('joining'));
+        setStatus('Joining...');
         initWebRTC(room, false, setP2pConnectionState);
       }, 500);
     }
@@ -280,7 +280,7 @@ function App() {
                 startScanner={() => setShowScanner(true)}
                 joinRoom={() => {
                   backgroundShield.activate();
-                  setStatus(t('connecting'));
+                  setStatus('Connecting...');
                   socket.emit('join-room', { roomId, role: 'receiver' });
                   initWebRTC(roomId, false, setP2pConnectionState);
                 }}
@@ -297,7 +297,7 @@ function App() {
                   status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
                     isPaused ? 'paused' : ''
                   }`}>
-                  <span>{p2pConnectionState === 'connected' ? (status === 'Waiting for receiver' ? t('ready_to_beam') : status) : (translations[language][status] || status)}</span>
+                  <span>{status === 'Waiting for receiver' && p2pConnectionState === 'connected' ? t('ready_to_beam') : t(status)}</span>
                   {progress > 0 && progress < 100 && (
                     <span>{Math.round(progress)}% • {stats.speed} {stats.eta && stats.eta !== '0s' && `• ${stats.eta} ${language === 'fa' ? 'مانده' : 'left'}`}</span>
                   )}
@@ -315,7 +315,7 @@ function App() {
         {toast && <div className="toast-container"><Toast {...toast} onClose={hideToast} /></div>}
         <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} history={history} onClear={clearHistory} t={t} />
       </main>
-      <Footer />
+      <Footer t={t} />
     </>
   );
 }
