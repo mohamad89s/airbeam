@@ -27,9 +27,14 @@ export const calculateTransferStats = (loaded, total, start) => {
     const remainingBytes = total - loaded;
     const etaSeconds = speedBytes > 0 ? remainingBytes / speedBytes : 0;
 
+    const totalSeconds = Math.ceil(etaSeconds);
+    const eta = totalSeconds >= 60
+        ? `${Math.floor(totalSeconds / 60)}m ${totalSeconds % 60}s`
+        : totalSeconds + 's';
+
     return {
         speed: formatBytes(speedBytes) + '/s',
-        eta: Math.ceil(etaSeconds) + 's'
+        eta
     };
 };
 

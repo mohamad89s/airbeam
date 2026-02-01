@@ -202,7 +202,11 @@ function App() {
                     ''
                   }`}>
                   <span>{status}</span>
-                  {progress > 0 && progress < 100 && <span>{Math.round(progress)}% • {stats.speed}</span>}
+                  {progress > 0 && progress < 100 && (
+                    <span>
+                      {Math.round(progress)}% • {stats.speed} {stats.eta && stats.eta !== '0s' && `• ${stats.eta} left`}
+                    </span>
+                  )}
                 </div>
                 {progress > 0 && (
                   <div className="progress-track">
