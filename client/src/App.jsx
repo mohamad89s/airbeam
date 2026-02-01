@@ -15,6 +15,7 @@ import Receiver from './components/Receiver'
 import Scanner from './components/Scanner'
 import HistoryModal from './components/HistoryModal'
 import { backgroundShield } from './services/backgroundShield'
+import { translations } from './utils/translations'
 import './index.css'
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [p2pConnectionState, setP2pConnectionState] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('airbeam_theme') || 'light');
+  const [language, setLanguage] = useState(() => localStorage.getItem('airbeam_language') || 'en');
 
   const { history, addToHistory, clearHistory } = useHistory();
   const [showHistory, setShowHistory] = useState(false);
@@ -44,6 +46,20 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('airbeam_theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('lang', language);
+    document.documentElement.setAttribute('dir', language === 'fa' ? 'rtl' : 'ltr');
+    localStorage.setItem('airbeam_language', language);
+  }, [language]);
+
+  const toggleLanguage = useCallback(() => {
+    setLanguage(prev => (prev === 'en' ? 'fa' : 'en'));
+  }, []);
+
+  const t = useCallback((key) => {
+    return translations[language][key] || key;
+  }, [language]);
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
@@ -93,7 +109,7 @@ function App() {
   const handleCopy = useCallback((text) => {
     copyToClipboard(text).then(() => {
       setCopied(true);
-      showToast('Copied to clipboard!', 'success');
+      showToast(t('copied_toast'), 'success');
       setTimeout(() => setCopied(false), 2000);
     });
   }, [setCopied, showToast]);
@@ -116,7 +132,7 @@ function App() {
   const handleSendFiles = useCallback(() => {
     backgroundShield.activate();
     sendFiles(files).then(() => {
-      showToast('Files beamed successfully!', 'success');
+      showToast(t('files_beamed_success'), 'success');
       addToHistory(files.map(f => ({
         type: 'file',
         name: f.name,
@@ -125,7 +141,7 @@ function App() {
         timestamp: Date.now()
       })), roomIdRef.current);
     }).catch(err => {
-      showToast(err.message || 'Failed to beam files.', 'error');
+      showToast(err.message || t('failed_beam_files'), 'error');
     });
   }, [files, sendFiles, showToast, addToHistory]);
 
@@ -133,7 +149,7 @@ function App() {
     try {
       backgroundShield.activate();
       sendText(sharedText);
-      showToast('Text beamed!', 'success');
+      showToast(t('text_beamed_success'), 'success');
       addToHistory([{
         type: 'text',
         name: sharedText.length > 20 ? sharedText.substring(0, 20) + '...' : sharedText,
@@ -142,7 +158,7 @@ function App() {
       }], roomIdRef.current);
       setSharedText('');
     } catch (err) {
-      showToast(err.message || 'Failed to beam text.', 'error');
+      showToast(err.message || t('failed_beam_text'), 'error');
     }
   }, [sharedText, sendText, showToast, addToHistory, setSharedText]);
 
@@ -158,7 +174,7 @@ function App() {
     const onError = (msg) => {
       if ((msg.includes('full') || msg.includes('not found')) && joinRetryCount.current < 2) {
         joinRetryCount.current++;
-        setStatus(msg.includes('full') ? 'Room busy, retrying...' : 'Finding room...');
+        setStatus(msg.includes('full') ? t('room_busy_retry') : t('finding_room'));
         setTimeout(() => {
           if (roomIdRef.current && mode !== 'home') {
             const role = mode === 'sender' ? 'sender' : 'receiver';
@@ -206,7 +222,7 @@ function App() {
       setMode('receiver');
       setTimeout(() => {
         socket.emit('join-room', { roomId: room, role: 'receiver' });
-        setStatus('Joining...');
+        setStatus(t('joining'));
         initWebRTC(room, false, setP2pConnectionState);
       }, 500);
     }
@@ -219,10 +235,13 @@ function App() {
         onHistoryClick={() => setShowHistory(true)}
         theme={theme}
         toggleTheme={toggleTheme}
+        language={language}
+        toggleLanguage={toggleLanguage}
+        t={t}
       />
       <main className="container">
         {mode === 'home' ? (
-          <Home onModeSelect={handleModeSelect} />
+          <Home onModeSelect={handleModeSelect} t={t} />
         ) : (
           <>
             {mode === 'sender' ? (
@@ -249,6 +268,7 @@ function App() {
                 cancelTransfer={cancelTransfer}
                 progress={progress}
                 p2pConnectionState={p2pConnectionState}
+                t={t}
               />
             ) : (
               <Receiver
@@ -260,13 +280,14 @@ function App() {
                 startScanner={() => setShowScanner(true)}
                 joinRoom={() => {
                   backgroundShield.activate();
-                  setStatus('Connecting...');
+                  setStatus(t('connecting'));
                   socket.emit('join-room', { roomId, role: 'receiver' });
                   initWebRTC(roomId, false, setP2pConnectionState);
                 }}
                 handleCopy={handleCopy}
                 history={history.filter(item => item.roomId === roomId)}
                 p2pConnectionState={p2pConnectionState}
+                t={t}
               />
             )}
 
@@ -276,9 +297,9 @@ function App() {
                   status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
                     isPaused ? 'paused' : ''
                   }`}>
-                  <span>{p2pConnectionState === 'connected' ? (status === 'Waiting for receiver' ? 'Ready to beam' : status) : status}</span>
+                  <span>{p2pConnectionState === 'connected' ? (status === 'Waiting for receiver' ? t('ready_to_beam') : status) : (translations[language][status] || status)}</span>
                   {progress > 0 && progress < 100 && (
-                    <span>{Math.round(progress)}% • {stats.speed} {stats.eta && stats.eta !== '0s' && `• ${stats.eta} left`}</span>
+                    <span>{Math.round(progress)}% • {stats.speed} {stats.eta && stats.eta !== '0s' && `• ${stats.eta} ${language === 'fa' ? 'مانده' : 'left'}`}</span>
                   )}
                 </div>
                 {progress > 0 && (
@@ -290,9 +311,9 @@ function App() {
             )}
           </>
         )}
-        {showScanner && <Scanner onScan={handleScan} onClose={() => setShowScanner(false)} />}
+        {showScanner && <Scanner onScan={handleScan} onClose={() => setShowScanner(false)} t={t} />}
         {toast && <div className="toast-container"><Toast {...toast} onClose={hideToast} /></div>}
-        <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} history={history} onClear={clearHistory} />
+        <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} history={history} onClear={clearHistory} t={t} />
       </main>
       <Footer />
     </>

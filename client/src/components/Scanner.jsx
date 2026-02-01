@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
-const Scanner = ({ onScan, onClose }) => {
+const Scanner = ({ onScan, onClose, t }) => {
     useEffect(() => {
         const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
         scanner.render((text) => {
@@ -22,7 +22,7 @@ const Scanner = ({ onScan, onClose }) => {
                 <X size={24} />
             </button>
             <div id="reader" style={{ width: '100%', maxWidth: '360px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '4px solid white', boxShadow: '0 0 40px rgba(0,0,0,0.5)' }}></div>
-            <p style={{ color: 'white', marginTop: 'var(--s-6)', fontWeight: 700, fontSize: '1.1rem' }}>Scan QR Code</p>
+            <p style={{ color: 'white', marginTop: 'var(--s-6)', fontWeight: 700, fontSize: '1.1rem' }}>{t('scan_qr')}</p>
         </div>
     );
 };

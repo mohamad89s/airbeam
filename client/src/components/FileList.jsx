@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, File as FileIcon, Edit2, Check } from 'lucide-react';
 import { formatBytes } from '../utils/helpers';
 
-const FileItem = ({ file, index, onRemove, onRename }) => {
+const FileItem = ({ file, index, onRemove, onRename, t }) => {
     const [isEditing, setIsEditing] = useState(false);
 
     // Split name and extension
@@ -70,10 +70,10 @@ const FileItem = ({ file, index, onRemove, onRename }) => {
                 </div>
             </div>
             <div className="file-actions">
-                <button className="icon-btn-small" onClick={() => setIsEditing(!isEditing)} title={isEditing ? "Save" : "Rename"}>
+                <button className="icon-btn-small" onClick={() => setIsEditing(!isEditing)} title={isEditing ? t('save') : t('rename')}>
                     {isEditing ? <Check size={16} /> : <Edit2 size={16} />}
                 </button>
-                <button className="icon-btn-small danger" onClick={() => onRemove(index)} title="Remove">
+                <button className="icon-btn-small danger" onClick={() => onRemove(index)} title={t('remove')}>
                     <X size={16} />
                 </button>
             </div>
@@ -81,7 +81,7 @@ const FileItem = ({ file, index, onRemove, onRename }) => {
     );
 };
 
-const FileList = ({ files, onRemove, onRename }) => {
+const FileList = ({ files, onRemove, onRename, t }) => {
     if (!files || files.length === 0) return null;
 
     return (
@@ -93,6 +93,7 @@ const FileList = ({ files, onRemove, onRename }) => {
                     index={index}
                     onRemove={onRemove}
                     onRename={onRename}
+                    t={t}
                 />
             ))}
         </div>

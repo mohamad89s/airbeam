@@ -1,26 +1,34 @@
 import { Zap, Wifi, Clock, Moon, Sun } from 'lucide-react';
 
-const Navbar = ({ onLogoClick, onHistoryClick, theme, toggleTheme }) => {
+const Navbar = ({ onLogoClick, onHistoryClick, theme, toggleTheme, language, toggleLanguage, t }) => {
     return (
         <header>
             <div className="logo" onClick={onLogoClick} style={{ cursor: 'pointer' }}>
                 <Zap size={24} fill="currentColor" />
-                <span>AirBeam</span>
+                <span>{t('app_name')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)', marginLeft: 'auto' }}>
                 <button
                     className="icon-btn theme-toggle"
                     onClick={toggleTheme}
-                    title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                    title={theme === 'light' ? t('dark_mode') : t('light_mode')}
                     style={{ padding: '8px', color: theme === 'dark' ? 'var(--warning)' : 'inherit' }}
                 >
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 </button>
-                <button className="icon-btn" onClick={onHistoryClick} title="History" style={{ padding: '8px' }}>
+                <button
+                    className="icon-btn"
+                    onClick={toggleLanguage}
+                    title={t('language')}
+                    style={{ fontWeight: 800, fontSize: '0.75rem', padding: '8px' }}
+                >
+                    {language === 'en' ? 'FA' : 'EN'}
+                </button>
+                <button className="icon-btn" onClick={onHistoryClick} title={t('history')} style={{ padding: '8px' }}>
                     <Clock size={20} />
                 </button>
                 <div className="success-badge">
-                    <Wifi size={14} /> P2P Ready
+                    <Wifi size={14} /> {t('p2p_ready')}
                 </div>
             </div>
         </header>

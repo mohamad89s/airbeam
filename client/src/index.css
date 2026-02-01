@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Vazirmatn:wght@100..900&display=swap');
 
 :root {
   /* Colors - Premium Blue Palette */
@@ -22,6 +22,9 @@
 
   --border-light: #f1f5f9;
   --border-subtle: #e2e8f0;
+
+  --font-en: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-fa: 'Vazirmatn', 'Outfit', sans-serif;
 
   /* Spacing Scale (8px) */
   --s-1: 0.25rem;
@@ -79,13 +82,21 @@
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+[lang='en'] {
+  --font-family: var(--font-en);
+}
+
+[lang='fa'] {
+  --font-family: var(--font-fa);
+}
+
 body {
   margin: 0;
   height: 100dvh;
   overflow: hidden;
   background-color: var(--bg-main);
   color: var(--text-main);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family);
   display: flex;
   flex-direction: column;
 }
@@ -108,7 +119,8 @@ h1,
 h2,
 h3,
 .logo {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family);
+  font-weight: 800;
 }
 
 #root {
@@ -118,6 +130,14 @@ h3,
   flex-direction: column;
 }
 
+[dir='rtl'] {
+  letter-spacing: normal !important;
+}
+
+[dir='rtl'] .logo {
+  flex-direction: row-reverse;
+}
+
 /* Layout */
 header {
   height: 64px;
@@ -125,9 +145,14 @@ header {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+}
+
+[dir='rtl'] header {
+  flex-direction: row-reverse;
 }
 
 .logo {
@@ -178,7 +203,7 @@ main.container {
     gap: var(--s-4);
     height: 100%;
     overflow-y: auto;
-    padding-right: var(--s-2);
+    padding-inline-end: var(--s-2);
   }
 
   /* Custom scrollbar for main panel */
@@ -251,7 +276,7 @@ main.container {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  margin-bottom: var(--s-1);
+  margin-block-end: var(--s-1);
 }
 
 .card-title {
@@ -460,7 +485,7 @@ main.container {
 
 .sender-room-info {
   width: 100%;
-  margin-bottom: var(--s-4);
+  margin-block-end: var(--s-4);
 }
 
 @media (min-width: 768px) {
@@ -846,7 +871,7 @@ footer {
   display: flex;
   flex-direction: column;
   gap: var(--s-2);
-  margin-top: var(--s-4);
+  margin-block-start: var(--s-4);
   width: 100%;
 }
 
@@ -891,6 +916,7 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  text-align: start;
 }
 
 .file-name {
@@ -1087,6 +1113,17 @@ footer {
 .history-body {
   flex: 1;
   min-width: 0;
+  text-align: start;
+}
+
+[dir='rtl'] .icon-btn svg {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] .icon-btn.theme-toggle svg,
+[dir='rtl'] .icon-btn.lang-toggle svg,
+[dir='rtl'] .icon-btn-small svg {
+  transform: none;
 }
 
 .history-name {

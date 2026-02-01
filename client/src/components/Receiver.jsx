@@ -11,20 +11,21 @@ const Receiver = ({
     joinRoom,
     handleCopy,
     history,
-    p2pConnectionState
+    p2pConnectionState,
+    t
 }) => {
     const isSuccess = status.includes('successfully');
-    const isPaused = status.toLowerCase().includes('paused');
-    const isCancelled = status.toLowerCase().includes('cancelled');
+    const isPaused = status.toLowerCase().includes('paused') || status === t('paused_by_sender');
+    const isCancelled = status.toLowerCase().includes('cancelled') || status === t('cancel');
     const isConnected = receivedText || status.includes('Connected') || status.includes('Receiving') || isSuccess || isPaused || isCancelled || p2pConnectionState === 'connected';
 
     return (
         <div className="card">
             <div className="card-header">
                 <button onClick={goHome} className="icon-btn" style={{ padding: '6px' }}>
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={20} style={{ transform: document.documentElement.dir === 'rtl' ? 'rotate(180deg)' : 'none' }} />
                 </button>
-                <h2 className="card-title">Receive</h2>
+                <h2 className="card-title">{t('receiving')}</h2>
             </div>
 
             <div className="desktop-layout receiver-layout" style={{ gridTemplateColumns: isConnected ? '1fr' : undefined }}>
@@ -34,7 +35,7 @@ const Receiver = ({
                             <button className="icon-btn" onClick={startScanner} style={{ marginBottom: 'var(--s-4)', width: '56px', height: '56px', borderRadius: '50%' }}>
                                 <Camera size={28} />
                             </button>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 'var(--s-2)' }}>Enter 6-digit code</p>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 'var(--s-2)' }}>{t('enter_code')}</p>
                             <div className="room-display">
                                 <input
                                     value={roomId}
@@ -56,14 +57,14 @@ const Receiver = ({
                                 }}
                                 style={{ margin: 'var(--s-2) 0', width: 'auto', padding: '6px 12px', fontSize: '0.8rem' }}
                             >
-                                <Copy size={14} /> Paste Code
+                                <Copy size={14} /> {t('paste_code')}
                             </button>
                             <button
                                 className="btn-primary"
                                 onClick={joinRoom}
                                 style={{ marginTop: 'var(--s-2)' }}
                             >
-                                Connect <ArrowRight size={20} />
+                                {t('connect')} <ArrowRight size={20} style={{ transform: document.documentElement.dir === 'rtl' ? 'rotate(180deg)' : 'none' }} />
                             </button>
                         </div>
                     </div>
@@ -76,7 +77,7 @@ const Receiver = ({
                                 <div className="connection-section" style={{ textAlign: 'left', alignItems: 'flex-start' }}>
                                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-main)', wordBreak: 'break-all', lineHeight: 1.6 }}>{receivedText}</p>
                                     <button className="btn-secondary" onClick={() => handleCopy(receivedText)} style={{ marginTop: 'var(--s-2)', width: 'auto' }}>
-                                        <Copy size={14} /> Copy to Clipboard
+                                        <Copy size={14} /> {t('copy')}
                                     </button>
                                 </div>
                             ) : isPaused ? (
@@ -86,24 +87,24 @@ const Receiver = ({
                                         <Pause size={32} color="var(--warning)" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
                                     </div>
                                     <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: 'var(--warning)' }}>
-                                        Transfer Paused by Sender
+                                        {t('paused_by_sender')}
                                     </p>
                                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                        Waiting for sender to resume...
+                                        {t('waiting_for_sender')}
                                     </p>
                                     <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-2)', opacity: 0.7 }}>
-                                        You can leave this page while transferring
+                                        {t('leave_page_tip')}
                                     </p>
                                 </div>
                             ) : (
                                 <div style={{ textAlign: 'center', padding: 'var(--s-4) 0' }}>
                                     <ShieldCheck size={64} color={isSuccess ? "var(--success)" : isCancelled ? "var(--error)" : "var(--primary)"} style={{ opacity: 0.8 }} />
                                     <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: isSuccess ? 'var(--success)' : isCancelled ? 'var(--error)' : 'var(--text-muted)' }}>
-                                        {status || 'Waiting for sender...'}
+                                        {t(status) || status || t('waiting_for_sender')}
                                     </p>
                                     {!isSuccess && (
                                         <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-2)', opacity: 0.7 }}>
-                                            You can leave this page while transferring
+                                            {t('leave_page_tip')}
                                         </p>
                                     )}
                                 </div>
@@ -112,7 +113,7 @@ const Receiver = ({
                             {history && history.length > 0 && (
                                 <div className="receiver-history" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--s-4)', marginTop: 'auto' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--s-3)', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                                        <Clock size={14} /> Recent Beams (This Room)
+                                        <Clock size={14} /> {t('recent_beams')}
                                     </div>
                                     <div className="history-list compact" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                                         {history.slice(0, 10).map((item, index) => (
@@ -124,7 +125,7 @@ const Receiver = ({
                                                 <div className="history-body">
                                                     <div className="history-name" style={{ fontSize: '0.75rem' }}>{item.name}</div>
                                                     <div className="history-meta" style={{ fontSize: '0.65rem' }}>
-                                                        {item.type === 'file' ? formatBytes(item.size) : 'Text Content'}
+                                                        {item.type === 'file' ? formatBytes(item.size) : t('text_content')}
                                                     </div>
                                                 </div>
                                                 <div className="history-icon-type">
@@ -142,10 +143,10 @@ const Receiver = ({
                                 <ArrowRight size={48} strokeWidth={1} />
                             </div>
                             <div>
-                                <p style={{ fontWeight: 700, margin: 0 }}>Waiting for connection</p>
-                                <p style={{ fontSize: '0.85rem' }}>Enter the code to start receiving</p>
+                                <p style={{ fontWeight: 700, margin: 0 }}>{t('waiting_connection')}</p>
+                                <p style={{ fontSize: '0.85rem' }}>{t('receiver_tip')}</p>
                                 <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-4)', opacity: 0.7 }}>
-                                    Tip: You can leave this page while transferring and we'll keep the beam alive
+                                    {t('background_tip')}
                                 </p>
                             </div>
                         </div>

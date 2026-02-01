@@ -25,7 +25,8 @@ const Sender = ({
     togglePause,
     cancelTransfer,
     progress,
-    p2pConnectionState
+    p2pConnectionState,
+    t
 }) => {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
@@ -57,10 +58,10 @@ const Sender = ({
         setTimeout(() => { target.value = null; }, 100);
     };
 
-    const isSuccess = status.includes('successfully');
+    const isSuccess = status.includes('successfully') || status === t('files_beamed_success');
 
     const handleBeamMore = () => {
-        setStatus('Waiting for receiver');
+        setStatus(t('waiting_for_receiver'));
         resetTransfer();
     };
 
@@ -69,9 +70,9 @@ const Sender = ({
             <div className="card">
                 <div className="card-header">
                     <button onClick={goHome} className="icon-btn" style={{ padding: '6px' }}>
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={20} style={{ transform: document.documentElement.dir === 'rtl' ? 'rotate(180deg)' : 'none' }} />
                     </button>
-                    <h2 className="card-title">Success</h2>
+                    <h2 className="card-title">{t('success')}</h2>
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--s-4)', justifyContent: 'center', textAlign: 'center', padding: 'var(--s-8) 0' }}>
                     <div style={{ position: 'relative', display: 'inline-block', margin: '0 auto' }}>
@@ -81,13 +82,13 @@ const Sender = ({
                         </div>
                     </div>
                     <p style={{ marginTop: 'var(--s-4)', fontWeight: 700, color: 'var(--success)', fontSize: '1.2rem' }}>
-                        {status}
+                        {t(status) || status}
                     </p>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                        Your beam was delivered instantly.
+                        {t('beam_delivered')}
                     </p>
                     <button className="btn-primary" onClick={handleBeamMore} style={{ marginTop: 'var(--s-6)', alignSelf: 'center' }}>
-                        Beam More
+                        {t('beam_more')}
                     </button>
                 </div>
             </div>
@@ -98,18 +99,18 @@ const Sender = ({
         <div className="card">
             <div className="card-header">
                 <button onClick={goHome} className="icon-btn" style={{ padding: '6px' }}>
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={20} style={{ transform: document.documentElement.dir === 'rtl' ? 'rotate(180deg)' : 'none' }} />
                 </button>
-                <h2 className="card-title">Send</h2>
-                <div className="tab-group" style={{ marginLeft: 'auto' }}>
+                <h2 className="card-title">{t('sending')}</h2>
+                <div className="tab-group" style={{ marginInlineStart: 'auto' }}>
                     <button
                         className={`tab-btn ${transferType === 'file' ? 'active' : ''}`}
                         onClick={() => setTransferType('file')}
-                    >Files</button>
+                    >{t('files')}</button>
                     <button
                         className={`tab-btn ${transferType === 'text' ? 'active' : ''}`}
                         onClick={() => setTransferType('text')}
-                    >Text</button>
+                    >{t('text')}</button>
                 </div>
             </div>
 
@@ -127,7 +128,7 @@ const Sender = ({
                                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                                 >
                                     {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
-                                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                                    <span>{copied ? t('copied') : t('copy')}</span>
                                 </button>
                             </div>
                             <div className="qr-mini">
@@ -135,7 +136,7 @@ const Sender = ({
                             </div>
                         </div>
                         <div style={{ textAlign: 'center', marginTop: 'var(--s-2)', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                            Ask receiver to scan this QR <br /> or enter the 6-digit code.
+                            {t('ask_receiver')}
                         </div>
                     </div>
                 </div>
@@ -164,10 +165,10 @@ const Sender = ({
                                 </div>
                                 <div style={{ textAlign: 'center' }}>
                                     <p style={{ fontWeight: 700, margin: 0, fontSize: '0.9rem' }}>
-                                        {files.length > 0 ? 'Add more files' : 'Choose files'}
+                                        {files.length > 0 ? t('add_more') : t('choose_files')}
                                     </p>
                                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                        {isDragging ? "Drop them here!" : "Tap to browse or drag & drop"}
+                                        {isDragging ? t('drop_files') : t('tap_to_browse')}
                                     </p>
                                 </div>
                             </div>
@@ -176,13 +177,14 @@ const Sender = ({
                                     files={files}
                                     onRemove={removeFile}
                                     onRename={renameFile}
+                                    t={t}
                                 />
                             )}
                         </div>
                     ) : (
                         <textarea
                             className="text-area"
-                            placeholder="Enter text or paste links..."
+                            placeholder={t('enter_text')}
                             value={sharedText}
                             onChange={(e) => setSharedText(e.target.value)}
                             style={{ flex: 1 }}
@@ -198,8 +200,8 @@ const Sender = ({
                                     disabled={isPaused && p2pConnectionState !== 'connected'}
                                     style={{ flex: 1, opacity: (isPaused && p2pConnectionState !== 'connected') ? 0.5 : 1 }}
                                 >
-                                    {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
-                                    {isPaused ? (p2pConnectionState === 'connected' ? 'Resume' : 'Reconnecting...') : 'Pause'}
+                                    {isPaused ? <Play size={18} fill="currentColor" style={{ transform: document.documentElement.dir === 'rtl' ? 'rotate(180deg)' : 'none' }} /> : <Pause size={18} fill="currentColor" />}
+                                    {isPaused ? (p2pConnectionState === 'connected' ? t('resume') : t('reconnecting')) : t('pause')}
                                 </button>
                                 {isPaused && (
                                     <button
@@ -207,12 +209,12 @@ const Sender = ({
                                         onClick={cancelTransfer}
                                         style={{ width: 'auto', padding: '0 var(--s-4)', color: 'var(--error)', borderColor: 'var(--error)', display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
-                                        <X size={18} /> Cancel
+                                        <X size={18} /> {t('cancel')}
                                     </button>
                                 )}
                             </div>
                             <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: 'var(--s-3)', opacity: 0.7 }}>
-                                You can leave this page while transferring
+                                {t('leave_page_tip')}
                             </p>
                         </>
                     ) : (
@@ -222,7 +224,7 @@ const Sender = ({
                             disabled={transferType === 'file' ? files.length === 0 : !sharedText.trim()}
                             style={{ marginTop: 'auto' }}
                         >
-                            <Zap size={18} fill="currentColor" /> {transferType === 'file' ? 'Beam Files' : 'Beam Text'}
+                            <Zap size={18} fill="currentColor" /> {transferType === 'file' ? t('beam_files') : t('beam_text')}
                         </button>
                     )}
                 </div>

@@ -1,0 +1,160 @@
+export const translations = {
+    en: {
+        // App / Navbar
+        app_name: 'AirBeam',
+        history: 'History',
+        p2p_ready: 'P2P Ready',
+        dark_mode: 'Dark Mode',
+        light_mode: 'Light Mode',
+        language: 'Language',
+
+        // Home
+        hero_title: 'Beam files instantly.',
+        hero_subtitle: 'Private local peer-to-peer sharing. No clouds, no limits, just pure speed.',
+        send: 'Send',
+        receive: 'Receive',
+
+        // Sender
+        sending: 'Send',
+        files: 'Files',
+        text: 'Text',
+        waiting_for_receiver: 'Waiting for receiver',
+        copy_code: 'Copy Code',
+        copied: 'Copied!',
+        copy: 'Copy',
+        ask_receiver: 'Ask receiver to scan this QR or enter the 6-digit code.',
+        choose_files: 'Choose files',
+        add_more: 'Add more files',
+        drop_files: 'Drop them here!',
+        tap_to_browse: 'Tap to browse or drag & drop',
+        enter_text: 'Enter text or paste links...',
+        beam_files: 'Beam Files',
+        beam_text: 'Beam Text',
+        pause: 'Pause',
+        resume: 'Resume',
+        reconnecting: 'Reconnecting...',
+        cancel: 'Cancel',
+        leave_page_tip: 'You can leave this page while transferring',
+        success: 'Success',
+        beam_delivered: 'Your beam was delivered instantly.',
+        beam_more: 'Beam More',
+        ready_to_beam: 'Ready to beam',
+
+        // Receiver
+        receiving: 'Receive',
+        scan_qr: 'Scan QR Code',
+        enter_code: 'Enter 6-digit code',
+        paste_code: 'Paste Code',
+        connect: 'Connect',
+        waiting_for_sender: 'Waiting for sender...',
+        paused_by_sender: 'Transfer Paused by Sender',
+        connecting: 'Connecting...',
+        joining: 'Joining...',
+        recent_beams: 'Recent Beams (This Room)',
+        waiting_connection: 'Waiting for connection',
+        receiver_tip: 'Enter the code to start receiving',
+        background_tip: 'Tip: You can leave this page while transferring and we\'ll keep the beam alive',
+
+        // File List / Actions
+        save: 'Save',
+        rename: 'Rename',
+        remove: 'Remove',
+
+        // History
+        transfer_history: 'Transfer History',
+        no_recent_transfers: 'No recent transfers',
+        history_subtitle: 'Sent and received items appear here',
+        clear_history: 'Clear History',
+        sent: 'Sent',
+        received: 'Received',
+        text_content: 'Text Content',
+
+        // Toasts / Errors
+        copied_toast: 'Copied to clipboard!',
+        files_beamed_success: 'Files beamed successfully!',
+        text_beamed_success: 'Text beamed!',
+        failed_beam_files: 'Failed to beam files.',
+        failed_beam_text: 'Failed to beam text.',
+        room_busy_retry: 'Room busy, retrying...',
+        finding_room: 'Finding room...',
+    },
+    fa: {
+        // App / Navbar
+        app_name: 'ایر بیم',
+        history: 'تاریخچه',
+        p2p_ready: 'آماده انتقال مستقیم',
+        dark_mode: 'حالت تاریک',
+        light_mode: 'حالت روشن',
+        language: 'زبان',
+
+        // Home
+        hero_title: 'فایل‌ها را سریع پرتو کنید.',
+        hero_subtitle: 'اشتراک‌گذاری مستقیم و خصوصی. بدون ابر، بدون محدودیت، فقط سرعت خالص.',
+        send: 'ارسال',
+        receive: 'دریافت',
+
+        // Sender
+        sending: 'ارسال',
+        files: 'فایل‌ها',
+        text: 'متن',
+        waiting_for_receiver: 'در انتظار دریافت‌کننده',
+        copy_code: 'کپی کد',
+        copied: 'کپی شد!',
+        copy: 'کپی',
+        ask_receiver: 'از دریافت‌کننده بخواهید این QR را اسکن کند یا کد ۶ رقمی را وارد کند.',
+        choose_files: 'انتخاب فایل‌ها',
+        add_more: 'افزودن فایل بیشتر',
+        drop_files: 'فایل‌ها را اینجا رها کنید!',
+        tap_to_browse: 'برای انتخاب ضربه بزنید یا فایل‌ها را رها کنید',
+        enter_text: 'متن را وارد کنید یا لینک را بچسبانید...',
+        beam_files: 'پرتو فایل‌ها',
+        beam_text: 'پرتو متن',
+        pause: 'توقف',
+        resume: 'ادامه',
+        reconnecting: 'در حال اتصال مجدد...',
+        cancel: 'لغو',
+        leave_page_tip: 'هنگام انتقال می‌توانید از این صفحه خارج شوید',
+        success: 'موفقیت‌آمیز',
+        beam_delivered: 'پرتوی شما بلافاصله تحویل داده شد.',
+        beam_more: 'پرتو بیشتر',
+        ready_to_beam: 'آماده پرتو کردن',
+
+        // Receiver
+        receiving: 'دریافت',
+        scan_qr: 'اسکن کد QR',
+        enter_code: 'کد ۶ رقمی را وارد کنید',
+        paste_code: 'چسباندن کد',
+        connect: 'اتصال',
+        waiting_for_sender: 'در انتظار فرستنده...',
+        paused_by_sender: 'انتقال توسط فرستنده متوقف شد',
+        connecting: 'در حال اتصال...',
+        joining: 'در حال ورود...',
+        recent_beams: 'پرتوهای اخیر (این اتاق)',
+        waiting_connection: 'در انتظار اتصال',
+        receiver_tip: 'کد را برای شروع دریافت وارد کنید',
+        background_tip: 'نکته: هنگام انتقال می‌توانید از این صفحه خارج شوید و ما ارتباط را زنده نگه می‌داریم',
+
+        // File List / Actions
+        save: 'ذخیره',
+        rename: 'تغییر نام',
+        remove: 'حذف',
+
+        // History
+        transfer_history: 'تاریخچه انتقالات',
+        no_recent_transfers: 'انتقال اخیری یافت نشد',
+        history_subtitle: 'موارد ارسالی و دریافتی اینجا ظاهر می‌شوند',
+        clear_history: 'پاک کردن تاریخچه',
+        sent: 'ارسالی',
+        received: 'دریافتی',
+        text_content: 'محتوای متنی',
+
+        // Toasts / Errors
+        copied_toast: 'در حافظه کپی شد!',
+        files_beamed_success: 'فایل‌ها با موفقیت پرتو شدند!',
+        text_beamed_success: 'متن پرتو شد!',
+        failed_beam_files: 'خطا در پرتو کردن فایل‌ها.',
+        failed_beam_text: 'خطا در پرتو کردن متن.',
+        room_busy_retry: 'اتاق شلوغ است، تلاش مجدد...',
+        finding_room: 'در حال یافتن اتاق...',
+    }
+};
