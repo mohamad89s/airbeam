@@ -31,7 +31,7 @@ function App() {
 
   const {
     status, setStatus, progress, stats, receivedText,
-    initWebRTC, sendFiles, sendText, isPaused, togglePause, destroy: destroyWebRTC
+    initWebRTC, sendFiles, sendText, isPaused, togglePause, cancelTransfer, destroy: destroyWebRTC
   } = useWebRTC((items) => addToHistory(items, roomIdRef.current));
 
   const {
@@ -182,6 +182,7 @@ function App() {
                 resetTransfer={resetTransfer}
                 isPaused={isPaused}
                 togglePause={togglePause}
+                cancelTransfer={cancelTransfer}
                 progress={progress}
               />
             ) : (

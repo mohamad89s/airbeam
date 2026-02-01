@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap, Pause, Play, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap, Pause, Play, RefreshCcw, X } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import FileList from './FileList';
 
@@ -23,6 +23,7 @@ const Sender = ({
     resetTransfer,
     isPaused,
     togglePause,
+    cancelTransfer,
     progress
 }) => {
     const [isDragging, setIsDragging] = useState(false);
@@ -188,14 +189,25 @@ const Sender = ({
                     )}
 
                     {transferType === 'file' && progress > 0 && progress < 100 ? (
-                        <button
-                            className={`btn-primary ${isPaused ? 'paused' : ''}`}
-                            onClick={togglePause}
-                            style={{ marginTop: 'auto' }}
-                        >
-                            {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
-                            {isPaused ? 'Resume Beam' : 'Pause Beam'}
-                        </button>
+                        <div style={{ display: 'flex', gap: 'var(--s-2)', marginTop: 'auto' }}>
+                            <button
+                                className={`btn-primary ${isPaused ? 'paused' : ''}`}
+                                onClick={togglePause}
+                                style={{ flex: 1 }}
+                            >
+                                {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
+                                {isPaused ? 'Resume' : 'Pause'}
+                            </button>
+                            {isPaused && (
+                                <button
+                                    className="btn-secondary"
+                                    onClick={cancelTransfer}
+                                    style={{ width: 'auto', padding: '0 var(--s-4)', color: 'var(--error)', borderColor: 'var(--error)', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                >
+                                    <X size={18} /> Cancel
+                                </button>
+                            )}
+                        </div>
                     ) : (
                         <button
                             className="btn-primary"

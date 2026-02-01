@@ -19,6 +19,7 @@ export const useWebRTC = (onReceived) => {
     const wakeLock = useRef(null);
     const bufferResolveRef = useRef(null);
     const isPausedRef = useRef(false);
+    const isCancelledRef = useRef(false);
 
     const requestWakeLock = async () => {
         if ('wakeLock' in navigator) {
@@ -73,6 +74,11 @@ export const useWebRTC = (onReceived) => {
                 } else if (parsed.type === 'control') {
                     if (parsed.action === 'pause') setStatus('Paused by sender');
                     else if (parsed.action === 'resume') setStatus(`Receiving ${metadataRef.current?.name || ''}`);
+                    else if (parsed.action === 'cancel') {
+                        setStatus('Transfer cancelled by sender');
+                        setProgress(0);
+                        releaseWakeLock();
+                    }
                 } else if (parsed.type === 'heartbeat') {
                     return; // Ignore heartbeats, they just keep the connection alive
                 } else if (parsed.type === 'text') {
@@ -164,6 +170,12 @@ export const useWebRTC = (onReceived) => {
                     await new Promise(resolve => {
                         pauseResolveRef.current = resolve;
                     });
+
+                    if (isCancelledRef.current) {
+                        isCancelledRef.current = false;
+                        throw new Error('Transfer cancelled');
+                    }
+
                     setStatus('Sending...');
                     // Shift startTime forward by the pause duration to maintain accurate speed stats
                     startTime.current += (Date.now() - pauseStartTime);
@@ -224,6 +236,25 @@ export const useWebRTC = (onReceived) => {
         });
     }, []);
 
+    const cancelTransfer = useCallback(() => {
+        isCancelledRef.current = true;
+        setIsPaused(false);
+        isPausedRef.current = false;
+
+        if (pauseResolveRef.current) {
+            pauseResolveRef.current();
+            pauseResolveRef.current = null;
+        }
+
+        if (rtcManager.current) {
+            rtcManager.current.sendData(JSON.stringify({ type: 'control', action: 'cancel' }));
+        }
+
+        setStatus('Transfer cancelled');
+        setProgress(0);
+        releaseWakeLock();
+    }, []);
+
     const destroy = useCallback(() => {
         if (rtcManager.current) {
             rtcManager.current.destroy();
@@ -255,6 +286,7 @@ export const useWebRTC = (onReceived) => {
         sendText,
         isPaused,
         togglePause,
+        cancelTransfer,
         destroy
     };
 };
