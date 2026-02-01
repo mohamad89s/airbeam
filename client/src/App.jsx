@@ -75,6 +75,7 @@ function App() {
     } else {
       setRoomId('');
       setStatus('');
+      setP2pConnectionState('');
     }
   }, [initWebRTC, setStatus, setRoomId]);
 
@@ -82,6 +83,7 @@ function App() {
     if (roomIdRef.current) socket.emit('leave-room', roomIdRef.current);
     setMode('home');
     setRoomId('');
+    setP2pConnectionState('');
     sessionStorage.removeItem('airbeam_mode');
     sessionStorage.removeItem('airbeam_roomId');
     resetTransfer();

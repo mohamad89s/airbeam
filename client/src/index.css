@@ -317,7 +317,7 @@ main.container {
   border: 1px solid var(--border-subtle);
   padding: var(--s-2);
   border-radius: var(--radius-md);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .room-display:focus-within {
@@ -368,7 +368,7 @@ main.container {
   font-weight: 600;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   background: transparent;
   color: var(--text-muted);
 }
@@ -395,7 +395,7 @@ main.container {
   justify-content: center;
   gap: var(--s-3);
   padding: var(--s-4);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   cursor: pointer;
   background: var(--bg-card);
 }
@@ -491,11 +491,17 @@ main.container {
   border-radius: var(--radius-lg);
   border: 1.5px solid var(--border-subtle);
   background: var(--bg-input);
+  color: var(--text-main);
   resize: none;
   font-family: inherit;
   font-size: 0.9375rem;
   line-height: 1.5;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+}
+
+.text-area::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 /* Toast System */
@@ -588,7 +594,7 @@ main.container {
   color: white;
   cursor: pointer;
   opacity: 0.8;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .toast-close:hover {
@@ -612,7 +618,7 @@ main.container {
   outline: none;
   border-color: var(--primary);
   background: var(--bg-input);
-  box-shadow: 0 0 0 4px var(--primary-soft);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 /* Buttons */
@@ -630,7 +636,7 @@ main.container {
   align-items: center;
   justify-content: center;
   gap: var(--s-3);
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
@@ -652,7 +658,7 @@ main.container {
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .btn-secondary:hover {
@@ -671,7 +677,7 @@ main.container {
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .icon-btn:hover {
@@ -718,8 +724,8 @@ main.container {
   align-items: center;
   gap: var(--s-4);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-lg);
 }
 
@@ -738,7 +744,7 @@ main.container {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .mode-card:hover .icon-wrap {
@@ -852,7 +858,7 @@ footer {
   padding: var(--s-2) var(--s-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .file-item:hover {
@@ -920,7 +926,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .icon-btn-small:hover {
@@ -979,7 +985,7 @@ footer {
   position: relative;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toggle-switch::after {
@@ -992,7 +998,7 @@ footer {
   border-radius: 50%;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toggle-switch:checked {
