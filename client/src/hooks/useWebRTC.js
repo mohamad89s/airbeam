@@ -8,14 +8,17 @@ export const useWebRTC = (onReceived) => {
     const [progress, setProgress] = useState(0);
     const [stats, setStats] = useState({ speed: '0 B/s', eta: '0s' });
     const [receivedText, setReceivedText] = useState('');
+    const [isPaused, setIsPaused] = useState(false);
 
     const rtcManager = useRef(null);
     const metadataRef = useRef(null);
     const receivedChunks = useRef([]);
     const receivedSize = useRef(0);
+    const pauseResolveRef = useRef(null);
     const startTime = useRef(0);
     const wakeLock = useRef(null);
     const bufferResolveRef = useRef(null);
+    const isPausedRef = useRef(false);
 
     const requestWakeLock = async () => {
         if ('wakeLock' in navigator) {
@@ -34,6 +37,18 @@ export const useWebRTC = (onReceived) => {
             releaseWakeLock();
         }
     }, []);
+
+    useEffect(() => {
+        let heartbeat;
+        if (isPaused && rtcManager.current) {
+            heartbeat = setInterval(() => {
+                if (rtcManager.current?.dataChannel?.readyState === 'open') {
+                    rtcManager.current.sendData(JSON.stringify({ type: 'heartbeat' }));
+                }
+            }, 15000); // 15s keep-alive
+        }
+        return () => clearInterval(heartbeat);
+    }, [isPaused]);
 
     const handleDataReceived = useCallback((data) => {
         if (typeof data === 'string') {
@@ -55,6 +70,11 @@ export const useWebRTC = (onReceived) => {
 
                     setProgress(0);
                     requestWakeLock();
+                } else if (parsed.type === 'control') {
+                    if (parsed.action === 'pause') setStatus('Paused by sender');
+                    else if (parsed.action === 'resume') setStatus(`Receiving ${metadataRef.current?.name || ''}`);
+                } else if (parsed.type === 'heartbeat') {
+                    return; // Ignore heartbeats, they just keep the connection alive
                 } else if (parsed.type === 'text') {
                     setReceivedText(parsed.content);
                     setStatus('Text received successfully!');
@@ -138,6 +158,17 @@ export const useWebRTC = (onReceived) => {
             const CHUNK_SIZE = 16384 * 16; // 256KB chunks for better speed
             let offset = 0;
             while (offset < file.size) {
+                if (isPausedRef.current) {
+                    setStatus('Paused');
+                    const pauseStartTime = Date.now();
+                    await new Promise(resolve => {
+                        pauseResolveRef.current = resolve;
+                    });
+                    setStatus('Sending...');
+                    // Shift startTime forward by the pause duration to maintain accurate speed stats
+                    startTime.current += (Date.now() - pauseStartTime);
+                }
+
                 if (rtcManager.current.getBufferedAmount() > 1024 * 1024) {
                     await new Promise(resolve => {
                         bufferResolveRef.current = resolve;
@@ -171,6 +202,28 @@ export const useWebRTC = (onReceived) => {
         setStatus('Text sent successfully!');
     };
 
+    const togglePause = useCallback(() => {
+        setIsPaused(prev => {
+            const next = !prev;
+            isPausedRef.current = next;
+
+            // Notify the receiver
+            if (rtcManager.current) {
+                rtcManager.current.sendData(JSON.stringify({
+                    type: 'control',
+                    action: next ? 'pause' : 'resume'
+                }));
+            }
+
+            if (!next && pauseResolveRef.current) {
+                // Resume logic: Resolve the promise that the loop is waiting on
+                pauseResolveRef.current();
+                pauseResolveRef.current = null;
+            }
+            return next;
+        });
+    }, []);
+
     const destroy = useCallback(() => {
         if (rtcManager.current) {
             rtcManager.current.destroy();
@@ -178,9 +231,14 @@ export const useWebRTC = (onReceived) => {
         }
         setStatus('');
         setProgress(0);
+        setIsPaused(false);
         setStats({ speed: '0 B/s', eta: '0s' });
         setReceivedText('');
         releaseWakeLock();
+        if (pauseResolveRef.current) {
+            pauseResolveRef.current();
+            pauseResolveRef.current = null;
+        }
     }, []);
 
     return {
@@ -195,6 +253,8 @@ export const useWebRTC = (onReceived) => {
         initWebRTC,
         sendFiles,
         sendText,
+        isPaused,
+        togglePause,
         destroy
     };
 };

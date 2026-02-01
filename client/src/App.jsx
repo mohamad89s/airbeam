@@ -31,7 +31,7 @@ function App() {
 
   const {
     status, setStatus, progress, stats, receivedText,
-    initWebRTC, sendFiles, sendText, destroy: destroyWebRTC
+    initWebRTC, sendFiles, sendText, isPaused, togglePause, destroy: destroyWebRTC
   } = useWebRTC((items) => addToHistory(items, roomIdRef.current));
 
   const {
@@ -180,6 +180,9 @@ function App() {
                 status={status}
                 setStatus={setStatus}
                 resetTransfer={resetTransfer}
+                isPaused={isPaused}
+                togglePause={togglePause}
+                progress={progress}
               />
             ) : (
               <Receiver
@@ -199,7 +202,7 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s-2)', marginTop: 'var(--s-4)' }}>
                 <div className={`status-bar ${status.toLowerCase().includes('successfully') || status.toLowerCase().includes('connected') || status.toLowerCase().includes('ready') ? 'success' :
                   status.toLowerCase().includes('lost') || status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? 'error' :
-                    ''
+                    isPaused ? 'paused' : ''
                   }`}>
                   <span>{status}</span>
                   {progress > 0 && progress < 100 && (

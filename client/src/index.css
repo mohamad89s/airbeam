@@ -738,6 +738,19 @@ main.container {
   background: color-mix(in srgb, var(--error), transparent 90%);
 }
 
+.status-bar.paused {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.btn-primary.paused {
+  background: #64748b;
+}
+
+.btn-primary.paused:hover {
+  background: #475569;
+}
+
 .progress-track {
   height: 8px;
   background: var(--bg-input);

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap } from 'lucide-react';
+import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap, Pause, Play, RefreshCcw } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import FileList from './FileList';
 
@@ -20,7 +20,10 @@ const Sender = ({
     sendText,
     status,
     setStatus,
-    resetTransfer
+    resetTransfer,
+    isPaused,
+    togglePause,
+    progress
 }) => {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
@@ -184,14 +187,25 @@ const Sender = ({
                         />
                     )}
 
-                    <button
-                        className="btn-primary"
-                        onClick={transferType === 'file' ? sendFiles : sendText}
-                        disabled={transferType === 'file' ? files.length === 0 : !sharedText.trim()}
-                        style={{ marginTop: 'auto' }}
-                    >
-                        <Zap size={18} fill="currentColor" /> {transferType === 'file' ? 'Beam Files' : 'Beam Text'}
-                    </button>
+                    {transferType === 'file' && progress > 0 && progress < 100 ? (
+                        <button
+                            className={`btn-primary ${isPaused ? 'paused' : ''}`}
+                            onClick={togglePause}
+                            style={{ marginTop: 'auto' }}
+                        >
+                            {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
+                            {isPaused ? 'Resume Beam' : 'Pause Beam'}
+                        </button>
+                    ) : (
+                        <button
+                            className="btn-primary"
+                            onClick={transferType === 'file' ? sendFiles : sendText}
+                            disabled={transferType === 'file' ? files.length === 0 : !sharedText.trim()}
+                            style={{ marginTop: 'auto' }}
+                        >
+                            <Zap size={18} fill="currentColor" /> {transferType === 'file' ? 'Beam Files' : 'Beam Text'}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
