@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { socket } from '../services/socket';
 import { WebRTCManager } from '../services/webrtc';
 import { calculateTransferStats } from '../utils/helpers';
+import { backgroundShield } from '../services/backgroundShield';
 
 export const useWebRTC = (onReceived) => {
     const [status, setStatus] = useState('');
@@ -14,6 +15,7 @@ export const useWebRTC = (onReceived) => {
     const metadataRef = useRef(null);
     const receivedChunks = useRef([]);
     const receivedSize = useRef(0);
+    const pendingDownloadRef = useRef(null);
     const pauseResolveRef = useRef(null);
     const startTime = useRef(0);
     const wakeLock = useRef(null);
@@ -56,6 +58,7 @@ export const useWebRTC = (onReceived) => {
             try {
                 const parsed = JSON.parse(data);
                 if (parsed.type === 'metadata') {
+                    backgroundShield.activate(); // Ensure active on receiver side
                     metadataRef.current = parsed;
                     receivedChunks.current = [];
                     receivedSize.current = 0;
@@ -84,6 +87,7 @@ export const useWebRTC = (onReceived) => {
                         setProgress(0);
                         setIsPaused(false);
                         releaseWakeLock();
+                        backgroundShield.deactivate();
                     }
                 } else if (parsed.type === 'heartbeat') {
                     return; // Ignore heartbeats, they just keep the connection alive
@@ -117,12 +121,27 @@ export const useWebRTC = (onReceived) => {
             if (receivedSize.current >= meta.size) {
                 const blob = new Blob(receivedChunks.current);
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = meta.name;
-                a.click();
-                URL.revokeObjectURL(url);
-                URL.revokeObjectURL(url);
+
+                const triggerDownload = () => {
+                    console.log('📦 Triggering download for:', meta.name);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = meta.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    // Cleanup after a short delay to ensure browser handled the click
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                };
+
+                if (document.visibilityState === 'visible') {
+                    triggerDownload();
+                } else {
+                    console.log('⏸️ Tab hidden. Queuing download for foreground.');
+                    pendingDownloadRef.current = triggerDownload;
+                }
+
                 setStatus('File received successfully!');
                 setProgress(100);
                 releaseWakeLock();
@@ -211,6 +230,7 @@ export const useWebRTC = (onReceived) => {
         }
         setStatus('File sent successfully!');
         releaseWakeLock();
+        backgroundShield.deactivate();
     };
 
     const sendText = (text) => {
@@ -222,6 +242,18 @@ export const useWebRTC = (onReceived) => {
         if (!success) throw new Error('Failed to send text. Check connection.');
         setStatus('Text sent successfully!');
     };
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && pendingDownloadRef.current) {
+                console.log('👋 Tab foreground. Flushing pending download.');
+                pendingDownloadRef.current();
+                pendingDownloadRef.current = null;
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, []);
 
     const togglePause = useCallback(() => {
         setIsPaused(prev => {
@@ -262,6 +294,7 @@ export const useWebRTC = (onReceived) => {
         setStatus('Transfer cancelled');
         setProgress(0);
         releaseWakeLock();
+        backgroundShield.deactivate();
     }, []);
 
     const destroy = useCallback(() => {
@@ -279,6 +312,7 @@ export const useWebRTC = (onReceived) => {
             pauseResolveRef.current();
             pauseResolveRef.current = null;
         }
+        backgroundShield.deactivate();
     }, []);
 
     return {

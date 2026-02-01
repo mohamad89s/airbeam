@@ -14,10 +14,16 @@ import Sender from './components/Sender'
 import Receiver from './components/Receiver'
 import Scanner from './components/Scanner'
 import HistoryModal from './components/HistoryModal'
+import ThemeToggle from './components/ThemeToggle'
+import { backgroundShield } from './services/backgroundShield'
 import './index.css'
 
 function App() {
   const [mode, setMode] = useState(() => sessionStorage.getItem('airbeam_mode') || 'home');
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('airbeam-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  });
   const [roomId, setRoomId] = useState(() => sessionStorage.getItem('airbeam_roomId') || '');
   const [showScanner, setShowScanner] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
@@ -101,6 +107,7 @@ function App() {
   }, [initWebRTC, setStatus]);
 
   const handleSendFiles = useCallback(() => {
+    backgroundShield.activate();
     sendFiles(files).then(() => {
       showToast('Files beamed successfully!', 'success');
       addToHistory(files.map(f => ({
@@ -117,6 +124,7 @@ function App() {
 
   const handleSendText = useCallback(() => {
     try {
+      backgroundShield.activate();
       sendText(sharedText);
       showToast('Text beamed!', 'success');
       addToHistory([{
@@ -161,15 +169,8 @@ function App() {
     socket.on('error', onError);
 
     const handleVisibility = () => {
-      if (document.visibilityState === 'hidden' && roomIdRef.current && mode !== 'home') {
-        socket.emit('leave-room', roomIdRef.current);
-      } else if (document.visibilityState === 'visible') {
-        if (!socket.connected) {
-          connectSocket();
-        } else if (roomIdRef.current && mode !== 'home') {
-          socket.emit('join-room', { roomId: roomIdRef.current, role: mode === 'sender' ? 'sender' : 'receiver' });
-          initWebRTC(roomIdRef.current, mode === 'sender', setP2pConnectionState);
-        }
+      if (document.visibilityState === 'visible' && !socket.connected) {
+        connectSocket();
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -191,6 +192,15 @@ function App() {
   }, [isSocketConnected]);
 
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('airbeam-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const room = params.get('room');
     if (room && room.length === 6 && mode !== 'receiver') {
@@ -206,7 +216,12 @@ function App() {
 
   return (
     <>
-      <Navbar onLogoClick={goHome} onHistoryClick={() => setShowHistory(true)} />
+      <Navbar
+        onLogoClick={goHome}
+        onHistoryClick={() => setShowHistory(true)}
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
       <main className="container">
         {mode === 'home' ? (
           <Home onModeSelect={handleModeSelect} />
@@ -245,9 +260,15 @@ function App() {
                 roomId={roomId}
                 setRoomId={setRoomId}
                 startScanner={() => setShowScanner(true)}
-                joinRoom={() => { setStatus('Connecting...'); socket.emit('join-room', { roomId, role: 'receiver' }); initWebRTC(roomId, false, setP2pConnectionState); }}
+                joinRoom={() => {
+                  backgroundShield.activate();
+                  setStatus('Connecting...');
+                  socket.emit('join-room', { roomId, role: 'receiver' });
+                  initWebRTC(roomId, false, setP2pConnectionState);
+                }}
                 handleCopy={handleCopy}
                 history={history.filter(item => item.roomId === roomId)}
+                p2pConnectionState={p2pConnectionState}
               />
             )}
 

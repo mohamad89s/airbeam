@@ -190,26 +190,31 @@ const Sender = ({
                     )}
 
                     {transferType === 'file' && progress > 0 && progress < 100 ? (
-                        <div style={{ display: 'flex', gap: 'var(--s-2)', marginTop: 'auto' }}>
-                            <button
-                                className={`btn-primary ${isPaused ? 'paused' : ''}`}
-                                onClick={togglePause}
-                                disabled={isPaused && p2pConnectionState !== 'connected'}
-                                style={{ flex: 1, opacity: (isPaused && p2pConnectionState !== 'connected') ? 0.5 : 1 }}
-                            >
-                                {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
-                                {isPaused ? (p2pConnectionState === 'connected' ? 'Resume' : 'Reconnecting...') : 'Pause'}
-                            </button>
-                            {isPaused && (
+                        <>
+                            <div style={{ display: 'flex', gap: 'var(--s-2)', marginTop: 'auto' }}>
                                 <button
-                                    className="btn-secondary"
-                                    onClick={cancelTransfer}
-                                    style={{ width: 'auto', padding: '0 var(--s-4)', color: 'var(--error)', borderColor: 'var(--error)', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    className={`btn-primary ${isPaused ? 'paused' : ''}`}
+                                    onClick={togglePause}
+                                    disabled={isPaused && p2pConnectionState !== 'connected'}
+                                    style={{ flex: 1, opacity: (isPaused && p2pConnectionState !== 'connected') ? 0.5 : 1 }}
                                 >
-                                    <X size={18} /> Cancel
+                                    {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
+                                    {isPaused ? (p2pConnectionState === 'connected' ? 'Resume' : 'Reconnecting...') : 'Pause'}
                                 </button>
-                            )}
-                        </div>
+                                {isPaused && (
+                                    <button
+                                        className="btn-secondary"
+                                        onClick={cancelTransfer}
+                                        style={{ width: 'auto', padding: '0 var(--s-4)', color: 'var(--error)', borderColor: 'var(--error)', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                    >
+                                        <X size={18} /> Cancel
+                                    </button>
+                                )}
+                            </div>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: 'var(--s-3)', opacity: 0.7 }}>
+                                You can leave this page while transferring
+                            </p>
+                        </>
                     ) : (
                         <button
                             className="btn-primary"

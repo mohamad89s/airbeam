@@ -48,6 +48,32 @@
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-xl: 28px;
+  --surface-subtle: #f1f5f9;
+}
+
+[data-theme="dark"] {
+  --bg-main: #0f172a;
+  /* Deep Slate Navy */
+  --bg-card: #1e293b;
+  /* Slate 800 */
+  --bg-input: #0f172a;
+  /* Slate 900 */
+  --surface-subtle: #334155;
+
+  --text-main: #f8fafc;
+  /* Slate 50 */
+  --text-muted: #94a3b8;
+  /* Slate 400 */
+  --text-inverse: #0f172a;
+
+  --border-light: #334155;
+  --border-subtle: #475569;
+
+  --primary-soft: rgba(0, 98, 255, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+
+  --qr-bg: #ffffff;
+  /* QR always needs light bg */
 }
 
 * {
@@ -65,6 +91,7 @@ body {
   font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .desktop-only {
@@ -99,7 +126,7 @@ h3,
 header {
   height: 64px;
   padding: 0 var(--s-6);
-  background: white;
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
@@ -214,7 +241,7 @@ main.container {
   padding: var(--s-5);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
-  border: 1px solid white;
+  border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
@@ -321,7 +348,7 @@ main.container {
 }
 
 .qr-mini {
-  background: white;
+  background: var(--qr-bg, white);
   padding: var(--s-3);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
@@ -351,7 +378,7 @@ main.container {
 }
 
 .tab-btn.active {
-  background: white;
+  background: var(--bg-card);
   color: var(--primary);
   box-shadow: var(--shadow-sm);
 }
@@ -374,7 +401,7 @@ main.container {
   padding: var(--s-4);
   transition: all 0.2s ease;
   cursor: pointer;
-  background: white;
+  background: var(--bg-card);
 }
 
 @media (max-width: 480px) {
@@ -588,7 +615,7 @@ main.container {
 .text-area:focus {
   outline: none;
   border-color: var(--primary);
-  background: white;
+  background: var(--bg-card);
   box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
@@ -622,7 +649,7 @@ main.container {
 
 .btn-secondary {
   border: 1px solid var(--border-subtle);
-  background: white;
+  background: var(--bg-card);
   padding: var(--s-2) var(--s-4);
   border-radius: var(--radius-md);
   font-size: 0.8125rem;
@@ -639,7 +666,7 @@ main.container {
 }
 
 .icon-btn {
-  background: white;
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   padding: var(--s-2);
   border-radius: 10px;
@@ -687,7 +714,7 @@ main.container {
 }
 
 .mode-card {
-  background: white;
+  background: var(--bg-card);
   padding: var(--s-8) var(--s-4);
   border-radius: var(--radius-xl);
   display: flex;

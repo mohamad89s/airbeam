@@ -85,8 +85,8 @@ io.on('connection', (socket) => {
       console.log(`ℹ️ Receiver ${socket.id} waiting for Sender in empty room ${roomId}`);
     }
 
-    // SECURITY: Room Locking
-    if (numClients >= 2) {
+    // SECURITY: Room Locking - increased to 3 to allow brief overlap during mobile reconnects
+    if (numClients >= 3) {
       console.warn(`Room ${roomId} is full. User ${socket.id} rejected.`);
       socket.emit('error', 'Room is full');
       return;

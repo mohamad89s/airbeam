@@ -10,11 +10,13 @@ const Receiver = ({
     startScanner,
     joinRoom,
     handleCopy,
-    history
+    history,
+    p2pConnectionState
 }) => {
     const isSuccess = status.includes('successfully');
     const isPaused = status.toLowerCase().includes('paused');
-    const isConnected = receivedText || status.includes('Connected') || status.includes('Receiving') || isSuccess || isPaused;
+    const isCancelled = status.toLowerCase().includes('cancelled');
+    const isConnected = receivedText || status.includes('Connected') || status.includes('Receiving') || isSuccess || isPaused || isCancelled || p2pConnectionState === 'connected';
 
     return (
         <div className="card">
@@ -90,18 +92,18 @@ const Receiver = ({
                                         Waiting for sender to resume...
                                     </p>
                                     <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-2)', opacity: 0.7 }}>
-                                        Keep this page open to stay connected
+                                        You can leave this page while transferring
                                     </p>
                                 </div>
                             ) : (
                                 <div style={{ textAlign: 'center', padding: 'var(--s-4) 0' }}>
-                                    <ShieldCheck size={64} color={isSuccess ? "var(--success)" : "var(--primary)"} style={{ opacity: 0.8 }} />
-                                    <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: isSuccess ? 'var(--success)' : 'var(--text-muted)' }}>
+                                    <ShieldCheck size={64} color={isSuccess ? "var(--success)" : isCancelled ? "var(--error)" : "var(--primary)"} style={{ opacity: 0.8 }} />
+                                    <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: isSuccess ? 'var(--success)' : isCancelled ? 'var(--error)' : 'var(--text-muted)' }}>
                                         {status || 'Waiting for sender...'}
                                     </p>
                                     {!isSuccess && (
                                         <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-2)', opacity: 0.7 }}>
-                                            Keep this page open for the best transfer speed
+                                            You can leave this page while transferring
                                         </p>
                                     )}
                                 </div>
@@ -143,7 +145,7 @@ const Receiver = ({
                                 <p style={{ fontWeight: 700, margin: 0 }}>Waiting for connection</p>
                                 <p style={{ fontSize: '0.85rem' }}>Enter the code to start receiving</p>
                                 <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-4)', opacity: 0.7 }}>
-                                    Tip: For the best experience, keep this page open until the transfer is complete
+                                    Tip: You can leave this page while transferring and we'll keep the beam alive
                                 </p>
                             </div>
                         </div>
