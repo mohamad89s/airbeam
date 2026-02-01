@@ -14,20 +14,16 @@ import Sender from './components/Sender'
 import Receiver from './components/Receiver'
 import Scanner from './components/Scanner'
 import HistoryModal from './components/HistoryModal'
-import ThemeToggle from './components/ThemeToggle'
 import { backgroundShield } from './services/backgroundShield'
 import './index.css'
 
 function App() {
   const [mode, setMode] = useState(() => sessionStorage.getItem('airbeam_mode') || 'home');
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('airbeam-theme') ||
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  });
   const [roomId, setRoomId] = useState(() => sessionStorage.getItem('airbeam_roomId') || '');
   const [showScanner, setShowScanner] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [p2pConnectionState, setP2pConnectionState] = useState('');
+  const [theme, setTheme] = useState(() => localStorage.getItem('airbeam_theme') || 'light');
 
   const { history, addToHistory, clearHistory } = useHistory();
   const [showHistory, setShowHistory] = useState(false);
@@ -43,6 +39,15 @@ function App() {
   useEffect(() => {
     if (mode) sessionStorage.setItem('airbeam_mode', mode);
   }, [mode]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('airbeam_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  }, []);
 
   const handleReceived = useCallback((items) => {
     addToHistory(items, roomIdRef.current);
@@ -190,15 +195,6 @@ function App() {
       initWebRTC(roomId, mode === 'sender', setP2pConnectionState);
     }
   }, [isSocketConnected]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('airbeam-theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

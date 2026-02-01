@@ -1,6 +1,6 @@
-import { Zap, Wifi, Clock } from 'lucide-react';
+import { Zap, Wifi, Clock, Moon, Sun } from 'lucide-react';
 
-const Navbar = ({ onLogoClick, onHistoryClick }) => {
+const Navbar = ({ onLogoClick, onHistoryClick, theme, toggleTheme }) => {
     return (
         <header>
             <div className="logo" onClick={onLogoClick} style={{ cursor: 'pointer' }}>
@@ -8,6 +8,14 @@ const Navbar = ({ onLogoClick, onHistoryClick }) => {
                 <span>AirBeam</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-3)', marginLeft: 'auto' }}>
+                <button
+                    className="icon-btn theme-toggle"
+                    onClick={toggleTheme}
+                    title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                    style={{ padding: '8px', color: theme === 'dark' ? 'var(--warning)' : 'inherit' }}
+                >
+                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                </button>
                 <button className="icon-btn" onClick={onHistoryClick} title="History" style={{ padding: '8px' }}>
                     <Clock size={20} />
                 </button>
