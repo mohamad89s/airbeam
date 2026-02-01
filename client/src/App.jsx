@@ -161,8 +161,15 @@ function App() {
     socket.on('error', onError);
 
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && !socket.connected) {
-        connectSocket();
+      if (document.visibilityState === 'hidden' && roomIdRef.current && mode !== 'home') {
+        socket.emit('leave-room', roomIdRef.current);
+      } else if (document.visibilityState === 'visible') {
+        if (!socket.connected) {
+          connectSocket();
+        } else if (roomIdRef.current && mode !== 'home') {
+          socket.emit('join-room', { roomId: roomIdRef.current, role: mode === 'sender' ? 'sender' : 'receiver' });
+          initWebRTC(roomIdRef.current, mode === 'sender', setP2pConnectionState);
+        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -173,7 +180,7 @@ function App() {
       socket.off('error', onError);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [showToast, setStatus, mode]);
+  }, [showToast, setStatus, mode, initWebRTC, setP2pConnectionState]);
 
   useEffect(() => {
     if (isSocketConnected && mode !== 'home' && roomId) {
@@ -228,6 +235,7 @@ function App() {
                 togglePause={togglePause}
                 cancelTransfer={cancelTransfer}
                 progress={progress}
+                p2pConnectionState={p2pConnectionState}
               />
             ) : (
               <Receiver

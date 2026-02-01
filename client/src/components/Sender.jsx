@@ -24,7 +24,8 @@ const Sender = ({
     isPaused,
     togglePause,
     cancelTransfer,
-    progress
+    progress,
+    p2pConnectionState
 }) => {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
@@ -193,10 +194,11 @@ const Sender = ({
                             <button
                                 className={`btn-primary ${isPaused ? 'paused' : ''}`}
                                 onClick={togglePause}
-                                style={{ flex: 1 }}
+                                disabled={isPaused && p2pConnectionState !== 'connected'}
+                                style={{ flex: 1, opacity: (isPaused && p2pConnectionState !== 'connected') ? 0.5 : 1 }}
                             >
                                 {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} fill="currentColor" />}
-                                {isPaused ? 'Resume' : 'Pause'}
+                                {isPaused ? (p2pConnectionState === 'connected' ? 'Resume' : 'Reconnecting...') : 'Pause'}
                             </button>
                             {isPaused && (
                                 <button

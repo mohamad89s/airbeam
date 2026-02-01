@@ -89,6 +89,9 @@ const Receiver = ({
                                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                                         Waiting for sender to resume...
                                     </p>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-2)', opacity: 0.7 }}>
+                                        Keep this page open to stay connected
+                                    </p>
                                 </div>
                             ) : (
                                 <div style={{ textAlign: 'center', padding: 'var(--s-4) 0' }}>
@@ -96,6 +99,11 @@ const Receiver = ({
                                     <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: isSuccess ? 'var(--success)' : 'var(--text-muted)' }}>
                                         {status || 'Waiting for sender...'}
                                     </p>
+                                    {!isSuccess && (
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-2)', opacity: 0.7 }}>
+                                            Keep this page open for the best transfer speed
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
@@ -134,6 +142,9 @@ const Receiver = ({
                             <div>
                                 <p style={{ fontWeight: 700, margin: 0 }}>Waiting for connection</p>
                                 <p style={{ fontSize: '0.85rem' }}>Enter the code to start receiving</p>
+                                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-4)', opacity: 0.7 }}>
+                                    Tip: For the best experience, keep this page open until the transfer is complete
+                                </p>
                             </div>
                         </div>
                     )}

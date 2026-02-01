@@ -99,8 +99,6 @@ export class WebRTCManager {
 
     handleUserJoined(userId) {
         console.log('User joined event received for:', userId);
-        // If we are initiator, we always re-initialize to ensure a fresh connection
-        // even if it's the same user re-joining (e.g. after a page refresh or go-home)
         if (this.isInitiator) {
             console.log(`Initiator resetting connection for user: ${userId}`);
             this.initializePeer(userId, true);
@@ -108,16 +106,23 @@ export class WebRTCManager {
     }
 
     handleUserLeft(userId) {
-        console.log('User left event received for:', userId);
-        if (this.remotePeerId === userId) {
-            console.log('Remote peer left. Closing connection.');
-            if (this.peerConnection) {
-                this.peerConnection.close();
-                this.peerConnection = null;
-            }
-            this.remotePeerId = null;
+        console.log(`Peer ${userId} left the room`);
+        if (userId === this.remotePeerId) {
             this.onStatusChange('disconnected');
+            this.destroyPeerConnection();
         }
+    }
+
+    destroyPeerConnection() {
+        if (this.peerConnection) {
+            this.peerConnection.close();
+            this.peerConnection = null;
+        }
+        if (this.dataChannel) {
+            this.dataChannel.close();
+            this.dataChannel = null;
+        }
+        this.remotePeerId = null;
     }
 
     setupDataChannel() {
@@ -153,7 +158,6 @@ export class WebRTCManager {
             if (this.onBufferedAmountLow) this.onBufferedAmountLow();
         };
 
-        // Set threshold to 256KB to ensure the pipe stays full but doesn't overflow
         this.dataChannel.bufferedAmountLowThreshold = 256 * 1024;
     }
 
@@ -176,12 +180,9 @@ export class WebRTCManager {
             this.initializePeer(callerId, false);
         }
 
-        // Politeness/collision handling could go here, but for now we reset if in wrong state
         if (this.peerConnection.signalingState !== 'stable') {
-            console.warn('Received offer while not in stable state. Signaling state:', this.peerConnection.signalingState);
-            // If we are already connecting or have an offer, we might have a collision.
-            // Simple approach: non-initiator accepts the new offer.
-            if (this.isInitiator) return; // Wait for polite peer logic if needed
+            console.warn('Received offer while not in stable state. State:', this.peerConnection.signalingState);
+            if (this.isInitiator) return;
         }
 
         try {
@@ -196,7 +197,6 @@ export class WebRTCManager {
                 sdp: answer
             });
 
-            // Process queued candidates
             while (this.iceCandidateQueue.length > 0) {
                 const candidate = this.iceCandidateQueue.shift();
                 await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
@@ -214,7 +214,6 @@ export class WebRTCManager {
         try {
             await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
 
-            // Process queued candidates
             while (this.iceCandidateQueue.length > 0) {
                 const candidate = this.iceCandidateQueue.shift();
                 await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
@@ -229,7 +228,6 @@ export class WebRTCManager {
             if (this.peerConnection && this.peerConnection.remoteDescription && this.peerConnection.remoteDescription.type) {
                 await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
             } else {
-                console.log('Queuing ICE candidate (remote description not set yet)');
                 this.iceCandidateQueue.push(candidate);
             }
         } catch (e) {
@@ -257,12 +255,7 @@ export class WebRTCManager {
     destroy() {
         console.log('Destroying WebRTCManager');
         this.removeSocketListeners();
-        if (this.dataChannel) {
-            this.dataChannel.close();
-        }
-        if (this.peerConnection) {
-            this.peerConnection.close();
-        }
+        this.destroyPeerConnection();
         this.iceCandidateQueue = [];
     }
 
