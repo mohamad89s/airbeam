@@ -12,9 +12,11 @@ const Navbar = ({ onLogoClick, onHistoryClick, theme, toggleTheme, language, tog
                     className="icon-btn theme-toggle"
                     onClick={toggleTheme}
                     title={theme === 'light' ? t('dark_mode') : t('light_mode')}
-                    style={{ padding: '8px', color: theme === 'dark' ? 'var(--warning)' : 'inherit' }}
+                    style={{ padding: '8px', color: theme === 'dark' ? 'var(--text-main)' : 'inherit' }}
                 >
-                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                    <div className="theme-icon-wrapper" key={theme}>
+                        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                    </div>
                 </button>
                 <button
                     className="icon-btn"
