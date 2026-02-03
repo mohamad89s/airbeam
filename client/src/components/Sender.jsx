@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap, Pause, Play, RefreshCcw, X } from 'lucide-react';
+import { ArrowLeft, Copy, Check, ExternalLink, FileText, Zap, Pause, Play, RefreshCcw, X, ShieldCheck } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import FileList from './FileList';
 
@@ -116,29 +116,41 @@ const Sender = ({
 
             <div className="desktop-layout sender-layout">
                 <div className="sidebar-panel">
-                    <div className="connection-section">
-                        <div className="room-qr-container">
-                            <div className="sender-room-info">
-                                <div className="room-display">
-                                    <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
+                    {p2pConnectionState !== 'connected' ? (
+                        <div className="connection-section connection-fade-in">
+                            <div className="room-qr-container">
+                                <div className="sender-room-info">
+                                    <div className="room-display">
+                                        <input readOnly value={roomId} onClick={() => handleCopy(roomId)} />
+                                    </div>
+                                    <button
+                                        className="btn-secondary"
+                                        onClick={() => handleCopy(roomId)}
+                                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                                    >
+                                        {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
+                                        <span>{copied ? t('copied') : t('copy')}</span>
+                                    </button>
                                 </div>
-                                <button
-                                    className="btn-secondary"
-                                    onClick={() => handleCopy(roomId)}
-                                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                                >
-                                    {copied ? <Check size={16} className="success-text" /> : <Copy size={16} />}
-                                    <span>{copied ? t('copied') : t('copy')}</span>
-                                </button>
+                                <div className="qr-mini">
+                                    <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
+                                </div>
                             </div>
-                            <div className="qr-mini">
-                                <QRCodeCanvas value={`${window.location.origin}?room=${roomId}`} size={160} />
+                            <div style={{ textAlign: 'center', marginTop: 'var(--s-2)', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                                {t('ask_receiver')}
                             </div>
                         </div>
-                        <div style={{ textAlign: 'center', marginTop: 'var(--s-2)', fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                            {t('ask_receiver')}
+                    ) : (
+                        <div className="connection-section connection-fade-in" style={{ textAlign: 'center', padding: 'var(--s-6)' }}>
+                            <ShieldCheck size={64} color="var(--primary)" style={{ opacity: 0.8 }} className="shield-icon" />
+                            <p style={{ marginTop: 'var(--s-4)', fontWeight: 600, color: 'var(--text-muted)' }}>
+                                {t('connected')}
+                            </p>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 'var(--s-2)', opacity: 0.7 }}>
+                                {t('ready_to_beam')}
+                            </p>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="main-panel">
