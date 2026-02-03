@@ -1,7 +1,6 @@
-const CACHE_NAME = 'airbeam-v1';
+const CACHE_NAME = 'airbeam-v2';
 const ASSETS_TO_CACHE = [
     '/airbeam/',
-    '/airbeam/index.html',
     '/airbeam/icon.svg',
     '/airbeam/manifest.json'
 ];
