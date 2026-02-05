@@ -57,12 +57,23 @@ export class WebRTCManager {
         if (this.peerConnection) {
             console.log('Closing existing peer connection');
             this.peerConnection.close();
+            this.clearConnectionTimeout();
         }
 
         this.peerConnection = new RTCPeerConnection(this.config);
 
+        // Set a connection timeout to prevent hanging in "connecting" state forever
+        this.connectionTimeout = setTimeout(() => {
+            if (this.peerConnection && this.peerConnection.connectionState !== 'connected') {
+                console.warn('⚠️ Connection timed out. Resetting...');
+                this.onStatusChange('failed');
+                this.destroyPeerConnection();
+            }
+        }, 20000); // 20 seconds timeout
+
         this.peerConnection.onicecandidate = (event) => {
             if (event.candidate && this.remotePeerId) {
+                console.debug('Sending ICE candidate');
                 this.socket.emit('ice-candidate', {
                     target: this.remotePeerId,
                     candidate: event.candidate
@@ -74,8 +85,12 @@ export class WebRTCManager {
             const state = this.peerConnection.connectionState;
             console.log('WebRTC Connection state:', state);
             this.onStatusChange(state);
+            
             if (state === 'connected') {
+                this.clearConnectionTimeout();
                 this.checkLocalConnection();
+            } else if (state === 'failed' || state === 'disconnected' || state === 'closed') {
+                this.clearConnectionTimeout();
             }
         };
 
@@ -97,6 +112,13 @@ export class WebRTCManager {
         }
     }
 
+    clearConnectionTimeout() {
+        if (this.connectionTimeout) {
+            clearTimeout(this.connectionTimeout);
+            this.connectionTimeout = null;
+        }
+    }
+
     handleUserJoined(userId) {
         console.log('User joined event received for:', userId);
         if (this.isInitiator) {
@@ -114,10 +136,12 @@ export class WebRTCManager {
     }
 
     destroyPeerConnection() {
+        this.clearConnectionTimeout();
         if (this.peerConnection) {
             this.peerConnection.close();
             this.peerConnection = null;
         }
+
         if (this.dataChannel) {
             this.dataChannel.close();
             this.dataChannel = null;
