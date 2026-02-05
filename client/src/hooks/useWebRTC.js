@@ -42,16 +42,15 @@ export const useWebRTC = (onReceived) => {
     }, []);
 
     useEffect(() => {
-        let heartbeat;
-        if (isPaused && rtcManager.current) {
-            heartbeat = setInterval(() => {
-                if (rtcManager.current?.dataChannel?.readyState === 'open') {
-                    rtcManager.current.sendData(JSON.stringify({ type: 'heartbeat' }));
-                }
-            }, 15000); // 15s keep-alive
-        }
+        const heartbeat = setInterval(() => {
+            if (rtcManager.current?.dataChannel?.readyState === 'open') {
+                // Send heartbeat to keep connection alive
+                rtcManager.current.sendData(JSON.stringify({ type: 'heartbeat' }));
+            }
+        }, 15000); // 15s keep-alive
+
         return () => clearInterval(heartbeat);
-    }, [isPaused]);
+    }, []);
 
     const handleDataReceived = useCallback((data) => {
         if (typeof data === 'string') {
