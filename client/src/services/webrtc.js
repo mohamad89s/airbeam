@@ -17,6 +17,16 @@ export class WebRTCManager {
             ]
         };
 
+        // Add TURN server if available in environment variables
+        if (import.meta.env.VITE_TURN_URL) {
+            this.config.iceServers.push({
+                urls: import.meta.env.VITE_TURN_URL,
+                username: import.meta.env.VITE_TURN_USERNAME,
+                credential: import.meta.env.VITE_TURN_CREDENTIAL
+            });
+            console.log('Added TURN server from config');
+        }
+
         // Bind handlers for easy removal
         this.boundHandleOffer = (payload) => this.handleOffer(payload.sdp, payload.caller);
         this.boundHandleAnswer = (payload) => this.handleAnswer(payload.sdp);
