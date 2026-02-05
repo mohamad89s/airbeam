@@ -8,7 +8,7 @@ const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL ||
 
 export const socket = io(SIGNALING_SERVER_URL, {
     autoConnect: false,
-    transports: ["websocket", "polling"], // Try websocket first, fallback to polling
+    transports: ["polling", "websocket"], // Polling first to bypass VPN/Firewall blocking
     reconnectionAttemps: 5,
     timeout: 10000
 });
@@ -16,7 +16,7 @@ export const socket = io(SIGNALING_SERVER_URL, {
 export const connectSocket = () => {
     if (!socket.connected) {
         console.log("🚀 Attempting to connect to:", SIGNALING_SERVER_URL);
-        console.log("Transport type: websocket (preferred)");
+        console.log("Transport type: polling (preferred for VPN compatibility)");
         socket.connect();
     }
 };
